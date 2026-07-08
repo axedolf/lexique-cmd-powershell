@@ -150,6 +150,7 @@
       "Fichiers & Dossiers": { icon: "folder-tree", badge: "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200" },
       "Reseau": { icon: "network", badge: "bg-cyan-100 text-cyan-800 dark:bg-cyan-400/15 dark:text-cyan-200" },
       "Systeme / Processus": { icon: "cpu", badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200" },
+      "Utilisateurs": { icon: "users-round", badge: "border border-purple-300 bg-purple-100 text-purple-800 dark:border-purple-500/30 dark:bg-purple-900/30 dark:text-purple-400" },
       "Droits / Utilisateurs": { icon: "shield-check", badge: "bg-violet-100 text-violet-800 dark:bg-violet-400/15 dark:text-violet-200" }
     };
 
@@ -246,6 +247,9 @@
         item.description,
         item.note,
         item.example,
+        item.exampleCmd,
+        item.examplePs,
+        item.adminRequired ? "administrateur admin privileges droits eleves" : "",
         ...(item.alias || [])
       ].join(" "));
     }
@@ -321,6 +325,19 @@
       `;
     }
 
+    function examples(item) {
+      if (item.exampleCmd || item.examplePs) {
+        return `
+          <div class="grid gap-2">
+            ${item.exampleCmd ? `<p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple CMD :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.exampleCmd)}</code></p>` : ""}
+            ${item.examplePs ? `<p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple PS :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.examplePs)}</code></p>` : ""}
+          </div>
+        `;
+      }
+
+      return `<p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.example)}</code></p>`;
+    }
+
     function generator(item) {
       if (!item.fields?.length) return "";
       return `
@@ -357,6 +374,7 @@
               </span>
               <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(item.level)}</span>
               <span class="rounded-full px-2.5 py-1 text-xs font-bold ${eqClasses}">${escapeHtml(item.equivalence)}</span>
+              ${item.adminRequired || item.category === "Utilisateurs" ? `<span class="inline-flex items-center gap-1 rounded-full border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-3.5 w-3.5"></i>Admin requis</span>` : ""}
             </div>
             <button type="button" class="favorite-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-500 transition hover:text-amber-500 dark:border-slate-700 dark:bg-slate-900 ${isFavorite(item.id) ? "text-amber-500" : ""}" data-id="${item.id}" aria-label="Favori">
               <i data-lucide="star" class="h-5 w-5 ${isFavorite(item.id) ? "fill-current" : ""}"></i>
@@ -370,11 +388,12 @@
           </div>
           ${compact ? "" : generator(item)}
           <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
+            ${item.adminRequired || item.category === "Utilisateurs" ? `<p class="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-4 w-4"></i>Requiert des droits Administrateur</p>` : ""}
             <p class="flex flex-wrap gap-2 text-slate-600 dark:text-slate-400">
               <span class="font-semibold text-slate-800 dark:text-slate-200">Alias PowerShell :</span>
               <span>${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</span>
             </p>
-            <p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.example)}</code></p>
+            ${examples(item)}
             <p class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">${escapeHtml(item.note)}</p>
           </div>
         </article>
