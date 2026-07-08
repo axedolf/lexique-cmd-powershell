@@ -15,7 +15,7 @@
             mono: ["Cascadia Code", "Consolas", "ui-monospace", "monospace"]
           },
           boxShadow: {
-            glow: "0 0 0 1px rgba(56,189,248,.18), 0 20px 60px rgba(15,23,42,.18)"
+            glow: "0 0 0 1px rgba(56,189,248,.18), 0 22px 70px rgba(15,23,42,.22)"
           }
         }
       }
@@ -25,62 +25,105 @@
   <style>
     ::selection { background: rgba(14, 165, 233, .35); }
     .code-scroll::-webkit-scrollbar { height: 6px; }
-    .code-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, .6); border-radius: 999px; }
+    .code-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, .7); border-radius: 999px; }
+    .kbd { box-shadow: inset 0 -1px 0 rgba(0,0,0,.25); }
   </style>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900 antialiased transition-colors dark:bg-slate-950 dark:text-slate-100">
   <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-    <header class="flex flex-col gap-5 border-b border-slate-300/70 pb-5 dark:border-slate-800 md:flex-row md:items-end md:justify-between">
+    <header class="flex flex-col gap-5 border-b border-slate-300/70 pb-5 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <div class="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-sm font-medium text-sky-700 dark:text-sky-300">
-          <i data-lucide="terminal-square" class="h-4 w-4"></i>
-          Anti-seche Windows
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-sm font-medium text-sky-700 dark:text-sky-300">
+            <i data-lucide="terminal-square" class="h-4 w-4"></i>
+            Anti-seche Windows
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+            <i data-lucide="bot" class="h-4 w-4"></i>
+            Assistant IA local
+          </span>
         </div>
         <div>
           <h1 class="text-3xl font-bold tracking-normal text-slate-950 dark:text-white sm:text-4xl">
             Lexique CMD / PowerShell
           </h1>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400 sm:text-base">
-            Comparateur rapide des commandes classiques CMD et de leurs equivalents PowerShell modernes.
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400 sm:text-base">
+            Comparateur interactif, recherche bidirectionnelle, favoris, generateurs de commandes et assistant pour choisir la bonne syntaxe.
           </p>
         </div>
       </div>
 
-      <button
-        id="themeToggle"
-        type="button"
-        class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        aria-label="Basculer le theme"
-      >
-        <i id="themeIcon" data-lucide="moon" class="h-5 w-5"></i>
-        <span id="themeLabel">Sombre</span>
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <button id="themeToggle" type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+          <i id="themeIcon" data-lucide="moon" class="h-5 w-5"></i>
+          <span id="themeLabel">Sombre</span>
+        </button>
+        <button id="assistantToggle" type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500">
+          <i data-lucide="sparkles" class="h-5 w-5"></i>
+          Assistant
+        </button>
+      </div>
     </header>
 
-    <section class="sticky top-0 z-10 -mx-4 border-b border-slate-300/70 bg-slate-100/90 px-4 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <label class="relative block w-full lg:max-w-xl">
+    <section class="sticky top-0 z-20 -mx-4 border-b border-slate-300/70 bg-slate-100/95 px-4 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <label class="relative block w-full xl:max-w-xl">
           <span class="sr-only">Recherche</span>
           <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"></i>
-          <input
-            id="searchInput"
-            type="search"
-            placeholder="Rechercher une action, commande, alias, description..."
-            class="h-12 w-full rounded-md border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-sky-400"
-          />
+          <input id="searchInput" type="search" placeholder="Rechercher CMD, PowerShell, alias, action, description..." class="h-12 w-full rounded-md border border-slate-300 bg-white pl-10 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-sky-400" />
+          <span class="kbd absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-slate-300 bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 sm:inline">/</span>
         </label>
-
-        <div id="categoryFilters" class="flex gap-2 overflow-x-auto pb-1 lg:justify-end lg:pb-0"></div>
+        <div id="categoryFilters" class="flex gap-2 overflow-x-auto pb-1 xl:justify-end xl:pb-0"></div>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <div id="levelFilters" class="flex gap-2"></div>
+        <div id="viewFilters" class="flex gap-2"></div>
       </div>
     </section>
 
+    <section id="assistantPanel" class="mt-4 hidden rounded-lg border border-emerald-300 bg-white p-4 shadow-sm dark:border-emerald-500/30 dark:bg-slate-900">
+      <div class="grid gap-4 lg:grid-cols-[1fr_360px]">
+        <div>
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <h2 class="inline-flex items-center gap-2 text-lg font-bold text-slate-950 dark:text-white">
+              <i data-lucide="bot" class="h-5 w-5 text-emerald-500"></i>
+              Assistant IA d'aide aux commandes
+            </h2>
+            <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200">Mode local</span>
+          </div>
+          <div id="assistantMessages" class="max-h-72 space-y-3 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 dark:border-slate-800 dark:bg-slate-950"></div>
+          <form id="assistantForm" class="mt-3 flex gap-2">
+            <input id="assistantInput" class="h-11 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Ex: je veux tester un port 443 ou supprimer un dossier" />
+            <button class="inline-flex h-11 items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-500" type="submit">
+              <i data-lucide="send" class="h-4 w-4"></i>
+              Demander
+            </button>
+          </form>
+        </div>
+        <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+          <h3 class="text-sm font-bold text-slate-950 dark:text-white">Idees rapides</h3>
+          <div id="assistantPrompts" class="mt-3 flex flex-wrap gap-2"></div>
+          <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
+            L'assistant analyse localement les donnees du lexique. Il ne transmet aucune donnee externe et reste compatible GitHub Pages.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="favoritesBand" class="hidden py-4">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="inline-flex items-center gap-2 text-base font-bold text-slate-950 dark:text-white">
+          <i data-lucide="star" class="h-5 w-5 text-amber-500"></i>
+          Favoris
+        </h2>
+        <button id="clearFavorites" class="text-sm font-semibold text-slate-500 hover:text-red-500 dark:text-slate-400" type="button">Vider</button>
+      </div>
+      <div id="favoritesList" class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
+    </section>
+
     <section class="flex items-center justify-between gap-3 py-4">
-      <p id="resultCount" class="text-sm font-medium text-slate-600 dark:text-slate-400"></p>
-      <button
-        id="resetFilters"
-        type="button"
-        class="hidden h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-      >
+      <p id="resultCount" class="text-sm font-medium text-slate-600 dark:text-slate-400">Chargement...</p>
+      <button id="resetFilters" type="button" class="hidden h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
         <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
         Reinitialiser
       </button>
@@ -94,200 +137,14 @@
           <i data-lucide="search-x" class="h-7 w-7"></i>
         </div>
         <h2 class="mt-4 text-xl font-bold text-slate-950 dark:text-white">Aucun resultat</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-          Modifie la recherche ou change de categorie pour retrouver une commande.
-        </p>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Modifie la recherche, le niveau ou la categorie.</p>
       </div>
     </section>
   </main>
 
-  <div
-    id="toast"
-    class="pointer-events-none fixed bottom-5 left-1/2 z-50 hidden -translate-x-1/2 rounded-md bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-glow dark:bg-white dark:text-slate-950"
-    role="status"
-    aria-live="polite"
-  >
-    Copie !
-  </div>
+  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 hidden -translate-x-1/2 rounded-md bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-glow dark:bg-white dark:text-slate-950" role="status" aria-live="polite">Copie !</div>
 
   <script>
-    // Base de donnees embarquee.
-    // Pour ajouter une commande, duplique un objet, garde les memes cles,
-    // puis ajoute eventuellement une nouvelle categorie dans categoryMeta.
-    const commands = [
-      {
-        category: "Fichiers & Dossiers",
-        action: "Lister les fichiers et dossiers",
-        cmd: "dir",
-        powershell: "Get-ChildItem",
-        alias: "ls, dir, gci",
-        description: "Affiche le contenu du dossier courant.",
-        example: "Get-ChildItem C:\\Windows"
-      },
-      {
-        category: "Fichiers & Dossiers",
-        action: "Changer de dossier",
-        cmd: "cd C:\\Temp",
-        powershell: "Set-Location C:\\Temp",
-        alias: "cd, sl",
-        description: "Change le repertoire courant de la session.",
-        example: "Set-Location $HOME\\Documents"
-      },
-      {
-        category: "Fichiers & Dossiers",
-        action: "Creer un dossier",
-        cmd: "mkdir Logs",
-        powershell: "New-Item -ItemType Directory -Path Logs",
-        alias: "mkdir, ni",
-        description: "Cree un nouveau repertoire.",
-        example: "New-Item -ItemType Directory -Path C:\\Temp\\Logs"
-      },
-      {
-        category: "Fichiers & Dossiers",
-        action: "Supprimer un fichier ou dossier",
-        cmd: "del fichier.txt",
-        powershell: "Remove-Item fichier.txt",
-        alias: "rm, del, erase, ri",
-        description: "Supprime un element. Ajoute -Recurse pour un dossier non vide.",
-        example: "Remove-Item .\\old -Recurse -Force"
-      },
-      {
-        category: "Fichiers & Dossiers",
-        action: "Copier un element",
-        cmd: "copy source.txt cible.txt",
-        powershell: "Copy-Item source.txt cible.txt",
-        alias: "copy, cp, cpi",
-        description: "Copie un fichier ou un dossier vers une destination.",
-        example: "Copy-Item .\\rapport.docx D:\\Sauvegarde\\"
-      },
-      {
-        category: "Fichiers & Dossiers",
-        action: "Deplacer ou renommer un element",
-        cmd: "move ancien.txt nouveau.txt",
-        powershell: "Move-Item ancien.txt nouveau.txt",
-        alias: "move, mv, mi",
-        description: "Deplace ou renomme un fichier ou dossier.",
-        example: "Move-Item .\\logs C:\\Archive\\logs"
-      },
-      {
-        category: "Reseau",
-        action: "Tester la connectivite reseau",
-        cmd: "ping 8.8.8.8",
-        powershell: "Test-Connection 8.8.8.8",
-        alias: "ping",
-        description: "Envoie des paquets ICMP pour verifier si une machine repond.",
-        example: "Test-Connection google.com -Count 4"
-      },
-      {
-        category: "Reseau",
-        action: "Afficher la configuration IP",
-        cmd: "ipconfig /all",
-        powershell: "Get-NetIPAddress",
-        alias: "gip",
-        description: "Liste les adresses IP et les interfaces reseau.",
-        example: "Get-NetIPAddress -AddressFamily IPv4"
-      },
-      {
-        category: "Reseau",
-        action: "Resoudre un nom DNS",
-        cmd: "nslookup openai.com",
-        powershell: "Resolve-DnsName openai.com",
-        alias: "-",
-        description: "Interroge le DNS pour obtenir les enregistrements d'un domaine.",
-        example: "Resolve-DnsName microsoft.com -Type MX"
-      },
-      {
-        category: "Reseau",
-        action: "Voir les connexions TCP",
-        cmd: "netstat -ano",
-        powershell: "Get-NetTCPConnection",
-        alias: "-",
-        description: "Affiche les connexions TCP, ports locaux et etats.",
-        example: "Get-NetTCPConnection -State Listen"
-      },
-      {
-        category: "Reseau",
-        action: "Tracer ou tester un chemin reseau",
-        cmd: "tracert 1.1.1.1",
-        powershell: "Test-NetConnection 1.1.1.1 -TraceRoute",
-        alias: "tnc",
-        description: "Teste une destination et peut afficher la route empruntee.",
-        example: "Test-NetConnection serveur.local -Port 443"
-      },
-      {
-        category: "Systeme / Processus",
-        action: "Lister les processus",
-        cmd: "tasklist",
-        powershell: "Get-Process",
-        alias: "gps, ps",
-        description: "Affiche les processus en cours d'execution.",
-        example: "Get-Process | Sort-Object CPU -Descending"
-      },
-      {
-        category: "Systeme / Processus",
-        action: "Arreter un processus",
-        cmd: "taskkill /PID 1234 /F",
-        powershell: "Stop-Process -Id 1234 -Force",
-        alias: "kill, spps",
-        description: "Termine un processus par PID ou par nom.",
-        example: "Stop-Process -Name notepad -Force"
-      },
-      {
-        category: "Systeme / Processus",
-        action: "Afficher les informations systeme",
-        cmd: "systeminfo",
-        powershell: "Get-ComputerInfo",
-        alias: "-",
-        description: "Recupere les informations detaillees sur Windows et la machine.",
-        example: "Get-ComputerInfo | Select-Object WindowsProductName, CsName"
-      },
-      {
-        category: "Systeme / Processus",
-        action: "Arreter ou redemarrer la machine",
-        cmd: "shutdown /s /t 0",
-        powershell: "Stop-Computer",
-        alias: "-",
-        description: "Arrete l'ordinateur local ou distant avec les droits requis.",
-        example: "Restart-Computer -ComputerName PC-ACCUEIL"
-      },
-      {
-        category: "Systeme / Processus",
-        action: "Lister les services Windows",
-        cmd: "sc query",
-        powershell: "Get-Service",
-        alias: "gsv",
-        description: "Affiche les services installes et leur etat.",
-        example: "Get-Service | Where-Object Status -eq Running"
-      },
-      {
-        category: "Droits / Utilisateurs",
-        action: "Afficher l'utilisateur courant",
-        cmd: "whoami",
-        powershell: "$env:USERNAME",
-        alias: "-",
-        description: "Identifie le compte utilise dans la session courante.",
-        example: "[System.Security.Principal.WindowsIdentity]::GetCurrent().Name"
-      },
-      {
-        category: "Droits / Utilisateurs",
-        action: "Lister les utilisateurs locaux",
-        cmd: "net user",
-        powershell: "Get-LocalUser",
-        alias: "-",
-        description: "Affiche les comptes locaux de l'ordinateur.",
-        example: "Get-LocalUser | Select-Object Name, Enabled"
-      },
-      {
-        category: "Droits / Utilisateurs",
-        action: "Lister les groupes locaux",
-        cmd: "net localgroup",
-        powershell: "Get-LocalGroup",
-        alias: "-",
-        description: "Affiche les groupes locaux disponibles.",
-        example: "Get-LocalGroupMember Administrateurs"
-      }
-    ];
-
     const categoryMeta = {
       "Tous": { icon: "layout-grid", badge: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200" },
       "Fichiers & Dossiers": { icon: "folder-tree", badge: "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200" },
@@ -297,28 +154,46 @@
     };
 
     const state = {
+      commands: [],
       search: "",
       category: "Tous",
-      theme: localStorage.getItem("cmdPsTheme") || "dark"
+      level: "Tous",
+      view: "Tous",
+      favorites: JSON.parse(localStorage.getItem("cmdPsFavorites") || "[]"),
+      theme: localStorage.getItem("cmdPsTheme") || "dark",
+      generatorValues: {}
     };
 
-    const grid = document.getElementById("commandGrid");
-    const searchInput = document.getElementById("searchInput");
-    const filters = document.getElementById("categoryFilters");
-    const resultCount = document.getElementById("resultCount");
-    const emptyState = document.getElementById("emptyState");
-    const resetFilters = document.getElementById("resetFilters");
-    const toast = document.getElementById("toast");
-    const themeToggle = document.getElementById("themeToggle");
-    const themeIcon = document.getElementById("themeIcon");
-    const themeLabel = document.getElementById("themeLabel");
+    const els = {
+      grid: document.getElementById("commandGrid"),
+      search: document.getElementById("searchInput"),
+      categories: document.getElementById("categoryFilters"),
+      levels: document.getElementById("levelFilters"),
+      views: document.getElementById("viewFilters"),
+      count: document.getElementById("resultCount"),
+      empty: document.getElementById("emptyState"),
+      reset: document.getElementById("resetFilters"),
+      toast: document.getElementById("toast"),
+      themeToggle: document.getElementById("themeToggle"),
+      themeIcon: document.getElementById("themeIcon"),
+      themeLabel: document.getElementById("themeLabel"),
+      assistantToggle: document.getElementById("assistantToggle"),
+      assistantPanel: document.getElementById("assistantPanel"),
+      assistantForm: document.getElementById("assistantForm"),
+      assistantInput: document.getElementById("assistantInput"),
+      assistantMessages: document.getElementById("assistantMessages"),
+      assistantPrompts: document.getElementById("assistantPrompts"),
+      favoritesBand: document.getElementById("favoritesBand"),
+      favoritesList: document.getElementById("favoritesList"),
+      clearFavorites: document.getElementById("clearFavorites")
+    };
 
     function normalize(value) {
-      return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
     function escapeHtml(value) {
-      return value
+      return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -326,120 +201,221 @@
         .replaceAll("'", "&#039;");
     }
 
+    function highlight(command) {
+      const tokens = escapeHtml(command).split(/(\s+)/);
+      return tokens.map((token) => {
+        if (/^\s+$/.test(token)) return token;
+        if (/^-{1,2}[\w-]+/.test(token) || /^\/[a-z?]+/i.test(token)) return `<span class="text-sky-300">${token}</span>`;
+        if (/^\$[\w:]+/.test(token)) return `<span class="text-fuchsia-300">${token}</span>`;
+        if (/^[A-Z]:\\/.test(token) || /^\.\\/.test(token)) return `<span class="text-amber-200">${token}</span>`;
+        if (/^["'].*["']$/.test(token)) return `<span class="text-emerald-200">${token}</span>`;
+        if (/^[A-Z][A-Za-z]+-[A-Z][A-Za-z]+/.test(token)) return `<span class="text-emerald-300 font-semibold">${token}</span>`;
+        return token;
+      }).join("");
+    }
+
     function applyTheme() {
       const isDark = state.theme === "dark";
       document.documentElement.classList.toggle("dark", isDark);
-      themeIcon.setAttribute("data-lucide", isDark ? "moon" : "sun");
-      themeLabel.textContent = isDark ? "Sombre" : "Clair";
+      els.themeIcon.setAttribute("data-lucide", isDark ? "moon" : "sun");
+      els.themeLabel.textContent = isDark ? "Sombre" : "Clair";
       localStorage.setItem("cmdPsTheme", state.theme);
       lucide.createIcons();
     }
 
-    function renderFilters() {
-      const categories = ["Tous", ...new Set(commands.map((item) => item.category))];
-      filters.innerHTML = categories.map((category) => {
-        const active = state.category === category;
-        const icon = categoryMeta[category]?.icon || "tag";
-        return `
-          <button
-            type="button"
-            class="category-btn inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-semibold transition ${
-              active
-                ? "border-sky-500 bg-sky-500 text-white shadow-sm"
-                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-            }"
-            data-category="${escapeHtml(category)}"
-          >
-            <i data-lucide="${icon}" class="h-4 w-4"></i>
-            ${escapeHtml(category)}
-          </button>
-        `;
-      }).join("");
+    async function loadCommands() {
+      try {
+        const response = await fetch("commandes.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        state.commands = await response.json();
+      } catch (error) {
+        els.count.textContent = "Impossible de charger commandes.json. Ouvre la version GitHub Pages ou lance un petit serveur local.";
+        console.error(error);
+      }
+    }
 
-      document.querySelectorAll(".category-btn").forEach((button) => {
+    function allHaystack(item) {
+      return normalize([
+        item.category,
+        item.level,
+        item.usage,
+        item.equivalence,
+        item.action,
+        item.cmd,
+        item.powershell,
+        item.description,
+        item.note,
+        item.example,
+        ...(item.alias || [])
+      ].join(" "));
+    }
+
+    function filteredCommands() {
+      const query = normalize(state.search.trim());
+      return state.commands.filter((item) => {
+        const categoryOk = state.category === "Tous" || item.category === state.category;
+        const levelOk = state.level === "Tous" || item.level === state.level;
+        const viewOk = state.view === "Tous" || item.usage === state.view;
+        return categoryOk && levelOk && viewOk && (!query || allHaystack(item).includes(query));
+      });
+    }
+
+    function pillButton(label, active, icon, kind, value) {
+      return `
+        <button type="button" data-kind="${kind}" data-value="${escapeHtml(label)}" class="filter-btn inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-semibold transition ${
+          active
+            ? "border-sky-500 bg-sky-500 text-white shadow-sm"
+            : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        }">
+          ${icon ? `<i data-lucide="${icon}" class="h-4 w-4"></i>` : ""}
+          ${escapeHtml(value || label)}
+        </button>
+      `;
+    }
+
+    function renderFilters() {
+      const categories = ["Tous", ...new Set(state.commands.map((item) => item.category))];
+      const levels = ["Tous", ...new Set(state.commands.map((item) => item.level))];
+      const usages = ["Tous", ...new Set(state.commands.map((item) => item.usage))];
+
+      els.categories.innerHTML = categories.map((category) => pillButton(category, state.category === category, categoryMeta[category]?.icon || "tag", "category")).join("");
+      els.levels.innerHTML = levels.map((level) => pillButton(level, state.level === level, level === "Basique" ? "circle-dot" : level === "Avance" ? "braces" : "layers", "level")).join("");
+      els.views.innerHTML = usages.map((usage) => pillButton(usage, state.view === usage, "tag", "view")).join("");
+
+      document.querySelectorAll(".filter-btn").forEach((button) => {
         button.addEventListener("click", () => {
-          state.category = button.dataset.category;
+          state[button.dataset.kind] = button.dataset.value;
           render();
         });
       });
     }
 
-    function commandBlock(label, command, accentClass) {
+    function isFavorite(id) {
+      return state.favorites.includes(id);
+    }
+
+    function saveFavorites() {
+      localStorage.setItem("cmdPsFavorites", JSON.stringify(state.favorites));
+    }
+
+    function applyTemplate(template, item) {
+      return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+        const values = state.generatorValues[item.id] || {};
+        const field = (item.fields || []).find((entry) => entry.name === key);
+        return values[key] || field?.default || field?.placeholder || "";
+      });
+    }
+
+    function commandBlock(item, label, command, accentClass) {
       return `
         <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/80">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-xs font-bold uppercase tracking-normal ${accentClass}">${label}</span>
-            <button
-              type="button"
-              class="copy-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-400 dark:hover:text-sky-300"
-              data-copy="${escapeHtml(command)}"
-              aria-label="Copier ${label}"
-            >
+            <button type="button" class="copy-btn inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-400 dark:hover:text-sky-300" data-copy="${escapeHtml(command)}">
               <i data-lucide="copy" class="h-4 w-4"></i>
+              Copier
             </button>
           </div>
-          <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-sm leading-6 text-slate-100"><code>${escapeHtml(command)}</code></pre>
+          <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-sm leading-6 text-slate-100"><code>${highlight(command)}</code></pre>
         </div>
       `;
     }
 
-    function renderCards(items) {
-      grid.innerHTML = items.map((item) => {
-        const meta = categoryMeta[item.category] || categoryMeta["Tous"];
-        return `
-          <article class="flex h-full flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:border-slate-800 dark:bg-slate-900">
-            <div class="mb-4 flex items-start justify-between gap-3">
-              <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${meta.badge}">
-                <i data-lucide="${meta.icon}" class="h-3.5 w-3.5"></i>
-                ${escapeHtml(item.category)}
-              </span>
-            </div>
-
-            <h2 class="text-lg font-bold leading-snug text-slate-950 dark:text-white">${escapeHtml(item.action)}</h2>
-            <p class="mt-2 min-h-12 text-sm leading-6 text-slate-600 dark:text-slate-400">${escapeHtml(item.description)}</p>
-
-            <div class="mt-4 grid gap-3">
-              ${commandBlock("CMD", item.cmd, "text-sky-700 dark:text-sky-300")}
-              ${commandBlock("PowerShell", item.powershell, "text-emerald-700 dark:text-emerald-300")}
-            </div>
-
-            <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-              <p class="flex flex-wrap gap-2 text-slate-600 dark:text-slate-400">
-                <span class="font-semibold text-slate-800 dark:text-slate-200">Alias :</span>
-                <span>${escapeHtml(item.alias)}</span>
-              </p>
-              <p class="text-slate-600 dark:text-slate-400">
-                <span class="font-semibold text-slate-800 dark:text-slate-200">Exemple :</span>
-                <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.example)}</code>
-              </p>
-            </div>
-          </article>
-        `;
-      }).join("");
+    function generator(item) {
+      if (!item.fields?.length) return "";
+      return `
+        <div class="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+          <div class="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+            <i data-lucide="wand-sparkles" class="h-4 w-4"></i>
+            Generateur rapide
+          </div>
+          <div class="grid gap-2 sm:grid-cols-2">
+            ${item.fields.map((field) => `
+              <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                ${escapeHtml(field.label)}
+                <input class="generator-input mt-1 h-9 w-full rounded-md border border-slate-300 bg-white px-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white" data-id="${item.id}" data-field="${field.name}" placeholder="${escapeHtml(field.placeholder)}" value="${escapeHtml((state.generatorValues[item.id] || {})[field.name] || field.default || "")}" />
+              </label>
+            `).join("")}
+          </div>
+        </div>
+      `;
     }
 
-    function getFilteredCommands() {
-      const query = normalize(state.search.trim());
-      return commands.filter((item) => {
-        const matchesCategory = state.category === "Tous" || item.category === state.category;
-        const haystack = normalize([
-          item.category,
-          item.action,
-          item.cmd,
-          item.powershell,
-          item.alias,
-          item.description,
-          item.example
-        ].join(" "));
+    function card(item, compact = false) {
+      const meta = categoryMeta[item.category] || categoryMeta["Tous"];
+      const cmd = applyTemplate(item.cmdTemplate || item.cmd, item);
+      const ps = applyTemplate(item.psTemplate || item.powershell, item);
+      const eqClasses = item.equivalence === "Parfaite"
+        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200"
+        : "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200";
+      return `
+        <article id="card-${item.id}" class="command-card flex h-full flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:border-slate-800 dark:bg-slate-900">
+          <div class="mb-4 flex items-start justify-between gap-3">
+            <div class="flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${meta.badge}">
+                <i data-lucide="${meta.icon}" class="h-3.5 w-3.5"></i>${escapeHtml(item.category)}
+              </span>
+              <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(item.level)}</span>
+              <span class="rounded-full px-2.5 py-1 text-xs font-bold ${eqClasses}">${escapeHtml(item.equivalence)}</span>
+            </div>
+            <button type="button" class="favorite-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-500 transition hover:text-amber-500 dark:border-slate-700 dark:bg-slate-900 ${isFavorite(item.id) ? "text-amber-500" : ""}" data-id="${item.id}" aria-label="Favori">
+              <i data-lucide="star" class="h-5 w-5 ${isFavorite(item.id) ? "fill-current" : ""}"></i>
+            </button>
+          </div>
+          <h2 class="text-lg font-bold leading-snug text-slate-950 dark:text-white">${escapeHtml(item.action)}</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">${escapeHtml(item.description)}</p>
+          <div class="mt-4 grid gap-3">
+            ${commandBlock(item, "CMD", cmd, "text-sky-700 dark:text-sky-300")}
+            ${commandBlock(item, "PowerShell", ps, "text-emerald-700 dark:text-emerald-300")}
+          </div>
+          ${compact ? "" : generator(item)}
+          <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
+            <p class="flex flex-wrap gap-2 text-slate-600 dark:text-slate-400">
+              <span class="font-semibold text-slate-800 dark:text-slate-200">Alias PowerShell :</span>
+              <span>${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</span>
+            </p>
+            <p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.example)}</code></p>
+            <p class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">${escapeHtml(item.note)}</p>
+          </div>
+        </article>
+      `;
+    }
 
-        return matchesCategory && (!query || haystack.includes(query));
+    function renderFavorites() {
+      const items = state.commands.filter((item) => isFavorite(item.id));
+      els.favoritesBand.classList.toggle("hidden", items.length === 0);
+      els.favoritesList.innerHTML = items.map((item) => card(item, true)).join("");
+    }
+
+    function renderCards(items) {
+      els.grid.innerHTML = items.map((item) => card(item)).join("");
+    }
+
+    function bindDynamicActions() {
+      document.querySelectorAll(".copy-btn").forEach((button) => {
+        button.addEventListener("click", () => copyToClipboard(button.dataset.copy));
+      });
+      document.querySelectorAll(".favorite-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          const id = button.dataset.id;
+          state.favorites = isFavorite(id) ? state.favorites.filter((entry) => entry !== id) : [...state.favorites, id];
+          saveFavorites();
+          render();
+        });
+      });
+      document.querySelectorAll(".generator-input").forEach((input) => {
+        input.addEventListener("input", () => {
+          state.generatorValues[input.dataset.id] ||= {};
+          state.generatorValues[input.dataset.id][input.dataset.field] = input.value;
+          render();
+        });
       });
     }
 
     async function copyToClipboard(text) {
       try {
         await navigator.clipboard.writeText(text);
-      } catch (error) {
+      } catch {
         const fallback = document.createElement("textarea");
         fallback.value = text;
         fallback.style.position = "fixed";
@@ -449,58 +425,147 @@
         document.execCommand("copy");
         fallback.remove();
       }
-
       showToast("Copie !");
-    }
-
-    function bindCopyButtons() {
-      document.querySelectorAll(".copy-btn").forEach((button) => {
-        button.addEventListener("click", () => copyToClipboard(button.dataset.copy));
-      });
     }
 
     let toastTimer;
     function showToast(message) {
-      toast.textContent = message;
-      toast.classList.remove("hidden");
+      els.toast.textContent = message;
+      els.toast.classList.remove("hidden");
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.add("hidden"), 1300);
+      toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 1300);
+    }
+
+    function renderAssistantPrompts() {
+      const prompts = [
+        "Je veux tester une IP",
+        "Comment lister les processus ?",
+        "Equivalent PowerShell de netstat",
+        "Je dois supprimer un dossier",
+        "Que fait Get-ChildItem ?"
+      ];
+      els.assistantPrompts.innerHTML = prompts.map((prompt) => `<button class="assistant-prompt rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-emerald-500 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" type="button">${escapeHtml(prompt)}</button>`).join("");
+      document.querySelectorAll(".assistant-prompt").forEach((button) => {
+        button.addEventListener("click", () => askAssistant(button.textContent));
+      });
+    }
+
+    function addAssistantMessage(role, html) {
+      const align = role === "user" ? "ml-auto bg-sky-600 text-white" : "mr-auto bg-white text-slate-700 dark:bg-slate-900 dark:text-slate-200";
+      els.assistantMessages.insertAdjacentHTML("beforeend", `<div class="max-w-[92%] rounded-md border border-slate-200 px-3 py-2 ${align} dark:border-slate-800">${html}</div>`);
+      els.assistantMessages.scrollTop = els.assistantMessages.scrollHeight;
+    }
+
+    function assistantAnswer(question) {
+      const q = normalize(question);
+      const scored = state.commands.map((item) => {
+        let score = 0;
+        const haystack = allHaystack(item);
+        q.split(/\s+/).filter(Boolean).forEach((word) => {
+          if (haystack.includes(word)) score += 2;
+          if (normalize(item.cmd).includes(word) || normalize(item.powershell).includes(word)) score += 4;
+          if ((item.alias || []).some((alias) => normalize(alias) === word)) score += 5;
+        });
+        if (q.includes("port") && item.id.includes("tracert")) score += 5;
+        if (q.includes("ip") && item.category === "Reseau") score += 2;
+        if (q.includes("supprim") && item.id.includes("remove-item")) score += 6;
+        return { item, score };
+      }).sort((a, b) => b.score - a.score);
+
+      const best = scored.filter((entry) => entry.score > 0).slice(0, 3);
+      if (!best.length) {
+        return "Je n'ai pas trouve de correspondance nette. Essaie avec un mot-cle comme <code>ping</code>, <code>Get-Process</code>, <code>service</code>, <code>DNS</code> ou <code>supprimer</code>.";
+      }
+
+      const main = best[0].item;
+      state.search = main.action;
+      els.search.value = main.action;
+      setTimeout(() => document.getElementById(`card-${main.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+
+      return `
+        Je te conseille <strong>${escapeHtml(main.action)}</strong>.<br>
+        CMD : <code>${escapeHtml(main.cmd)}</code><br>
+        PowerShell : <code>${escapeHtml(main.powershell)}</code><br>
+        Equivalence : <strong>${escapeHtml(main.equivalence)}</strong>. ${escapeHtml(main.note)}<br>
+        ${best.length > 1 ? `Autres pistes : ${best.slice(1).map((entry) => escapeHtml(entry.item.action)).join(", ")}.` : ""}
+      `;
+    }
+
+    function askAssistant(question) {
+      const trimmed = question.trim();
+      if (!trimmed) return;
+      addAssistantMessage("user", escapeHtml(trimmed));
+      const answer = assistantAnswer(trimmed);
+      addAssistantMessage("assistant", answer);
+      render();
     }
 
     function render() {
       renderFilters();
-      const items = getFilteredCommands();
+      renderAssistantPrompts();
+      const items = filteredCommands();
+      renderFavorites();
       renderCards(items);
 
-      resultCount.textContent = `${items.length} commande${items.length > 1 ? "s" : ""} affichee${items.length > 1 ? "s" : ""}`;
-      emptyState.classList.toggle("hidden", items.length > 0);
-      emptyState.classList.toggle("flex", items.length === 0);
-      resetFilters.classList.toggle("hidden", !state.search && state.category === "Tous");
-      resetFilters.classList.toggle("inline-flex", Boolean(state.search || state.category !== "Tous"));
+      els.count.textContent = `${items.length} commande${items.length > 1 ? "s" : ""} affichee${items.length > 1 ? "s" : ""}`;
+      els.empty.classList.toggle("hidden", items.length > 0);
+      els.empty.classList.toggle("flex", items.length === 0);
+      const hasFilters = state.search || state.category !== "Tous" || state.level !== "Tous" || state.view !== "Tous";
+      els.reset.classList.toggle("hidden", !hasFilters);
+      els.reset.classList.toggle("inline-flex", Boolean(hasFilters));
 
-      bindCopyButtons();
+      bindDynamicActions();
       lucide.createIcons();
     }
 
-    searchInput.addEventListener("input", (event) => {
+    els.search.addEventListener("input", (event) => {
       state.search = event.target.value;
       render();
     });
 
-    resetFilters.addEventListener("click", () => {
+    window.addEventListener("keydown", (event) => {
+      const tag = document.activeElement?.tagName;
+      if (event.key === "/" && !["INPUT", "TEXTAREA"].includes(tag)) {
+        event.preventDefault();
+        els.search.focus();
+      }
+    });
+
+    els.reset.addEventListener("click", () => {
       state.search = "";
       state.category = "Tous";
-      searchInput.value = "";
+      state.level = "Tous";
+      state.view = "Tous";
+      els.search.value = "";
       render();
     });
 
-    themeToggle.addEventListener("click", () => {
+    els.themeToggle.addEventListener("click", () => {
       state.theme = state.theme === "dark" ? "light" : "dark";
       applyTheme();
     });
 
+    els.assistantToggle.addEventListener("click", () => {
+      els.assistantPanel.classList.toggle("hidden");
+      if (!els.assistantPanel.classList.contains("hidden") && !els.assistantMessages.children.length) {
+        addAssistantMessage("assistant", "Dis-moi ce que tu veux faire en langage naturel, ou colle une commande CMD/PowerShell. Je chercherai l'equivalent le plus pertinent dans le lexique.");
+      }
+    });
+
+    els.assistantForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      askAssistant(els.assistantInput.value);
+      els.assistantInput.value = "";
+    });
+
+    els.clearFavorites.addEventListener("click", () => {
+      state.favorites = [];
+      saveFavorites();
+      render();
+    });
+
     applyTheme();
-    render();
+    loadCommands().then(render);
   </script>
 </body>
 </html>
