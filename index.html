@@ -160,9 +160,11 @@
       category: "Tous",
       level: "Tous",
       view: "Tous",
+      favoriteOnly: false,
       favorites: JSON.parse(localStorage.getItem("cmdPsFavorites") || "[]"),
       theme: localStorage.getItem("cmdPsTheme") || "dark",
-      generatorValues: {}
+      generatorValues: {},
+      openGenerators: []
     };
 
     const els = {
@@ -191,6 +193,28 @@
 
     function normalize(value) {
       return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function compact(value) {
+      return normalize(value).replace(/[^a-z0-9]/g, "");
+    }
+
+    function levenshtein(a, b) {
+      if (!a) return b.length;
+      if (!b) return a.length;
+      const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+      for (let i = 1; i <= a.length; i += 1) {
+        const current = [i];
+        for (let j = 1; j <= b.length; j += 1) {
+          current[j] = Math.min(
+            current[j - 1] + 1,
+            previous[j] + 1,
+            previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+          );
+        }
+        previous.splice(0, previous.length, ...current);
+      }
+      return previous[b.length];
     }
 
     function escapeHtml(value) {
@@ -235,8 +259,8 @@
       }
     }
 
-    function allHaystack(item) {
-      return normalize([
+    function searchableParts(item) {
+      return [
         item.category,
         item.level,
         item.usage,
@@ -251,17 +275,62 @@
         item.examplePs,
         item.adminRequired ? "administrateur admin privileges droits eleves" : "",
         ...(item.alias || [])
-      ].join(" "));
+      ];
+    }
+
+    function allHaystack(item) {
+      return normalize(searchableParts(item).join(" "));
+    }
+
+    function fuzzyScore(item, query) {
+      const normalizedQuery = normalize(query.trim());
+      if (!normalizedQuery) return 1;
+
+      const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+      const haystack = allHaystack(item);
+      const compactHaystack = compact(searchableParts(item).join(" "));
+      const compactQuery = compact(normalizedQuery);
+      const tokens = haystack.split(/[^a-z0-9]+/).filter(Boolean);
+      const fuzzyTokens = [...tokens, ...tokens.map((token) => token.replaceAll("net", ""))].filter(Boolean);
+
+      let score = 0;
+      if (haystack.includes(normalizedQuery)) score += 18;
+      if (compactQuery && compactHaystack.includes(compactQuery)) score += 16;
+      if (compactQuery && compactHaystack.replaceAll("net", "").includes(compactQuery)) score += 10;
+
+      queryWords.forEach((word) => {
+        const compactWord = compact(word);
+        if (!compactWord) return;
+        if (haystack.includes(word)) score += 6;
+        if (compactHaystack.includes(compactWord)) score += 5;
+        if ((item.alias || []).some((alias) => compact(alias) === compactWord)) score += 12;
+        if (compact(item.cmd).includes(compactWord)) score += 8;
+        if (compact(item.powershell).includes(compactWord)) score += 8;
+
+        const closeToken = fuzzyTokens.some((token) => {
+          if (Math.abs(token.length - compactWord.length) > 2) return false;
+          const distance = levenshtein(token, compactWord);
+          return distance <= (compactWord.length <= 5 ? 1 : 2);
+        });
+        if (closeToken) score += 4;
+      });
+
+      return score;
     }
 
     function filteredCommands() {
-      const query = normalize(state.search.trim());
-      return state.commands.filter((item) => {
+      const query = state.search.trim();
+      return state.commands
+        .map((item) => ({ item, score: fuzzyScore(item, query) }))
+        .filter(({ item, score }) => {
         const categoryOk = state.category === "Tous" || item.category === state.category;
         const levelOk = state.level === "Tous" || item.level === state.level;
         const viewOk = state.view === "Tous" || item.usage === state.view;
-        return categoryOk && levelOk && viewOk && (!query || allHaystack(item).includes(query));
-      });
+        const favoriteOk = !state.favoriteOnly || isFavorite(item.id);
+        return categoryOk && levelOk && viewOk && favoriteOk && (!query || score > 0);
+      })
+        .sort((a, b) => b.score - a.score || a.item.action.localeCompare(b.item.action))
+        .map(({ item }) => item);
     }
 
     function pillButton(label, active, icon, kind, value) {
@@ -284,11 +353,18 @@
 
       els.categories.innerHTML = categories.map((category) => pillButton(category, state.category === category, categoryMeta[category]?.icon || "tag", "category")).join("");
       els.levels.innerHTML = levels.map((level) => pillButton(level, state.level === level, level === "Basique" ? "circle-dot" : level === "Avance" ? "braces" : "layers", "level")).join("");
-      els.views.innerHTML = usages.map((usage) => pillButton(usage, state.view === usage, "tag", "view")).join("");
+      els.views.innerHTML = [
+        pillButton("Mes favoris", state.favoriteOnly, "star", "favoriteOnly"),
+        ...usages.map((usage) => pillButton(usage, state.view === usage, "tag", "view"))
+      ].join("");
 
       document.querySelectorAll(".filter-btn").forEach((button) => {
         button.addEventListener("click", () => {
-          state[button.dataset.kind] = button.dataset.value;
+          if (button.dataset.kind === "favoriteOnly") {
+            state.favoriteOnly = !state.favoriteOnly;
+          } else {
+            state[button.dataset.kind] = button.dataset.value;
+          }
           render();
         });
       });
@@ -315,9 +391,9 @@
         <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/80">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-xs font-bold uppercase tracking-normal ${accentClass}">${label}</span>
-            <button type="button" class="copy-btn inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-400 dark:hover:text-sky-300" data-copy="${escapeHtml(command)}">
+            <button type="button" class="copy-btn inline-flex h-8 min-w-20 items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-400 dark:hover:text-sky-300" data-copy="${escapeHtml(command)}">
               <i data-lucide="copy" class="h-4 w-4"></i>
-              Copier
+              <span>Copier</span>
             </button>
           </div>
           <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-sm leading-6 text-slate-100"><code>${highlight(command)}</code></pre>
@@ -340,20 +416,29 @@
 
     function generator(item) {
       if (!item.fields?.length) return "";
+      const isOpen = state.openGenerators.includes(item.id);
       return `
-        <div class="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-          <div class="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+        <div class="mt-4">
+          <button type="button" class="generator-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}">
             <i data-lucide="wand-sparkles" class="h-4 w-4"></i>
-            Generateur rapide
-          </div>
-          <div class="grid gap-2 sm:grid-cols-2">
-            ${item.fields.map((field) => `
-              <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                ${escapeHtml(field.label)}
-                <input class="generator-input mt-1 h-9 w-full rounded-md border border-slate-300 bg-white px-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white" data-id="${item.id}" data-field="${field.name}" placeholder="${escapeHtml(field.placeholder)}" value="${escapeHtml((state.generatorValues[item.id] || {})[field.name] || field.default || "")}" />
-              </label>
-            `).join("")}
-          </div>
+            ${isOpen ? "Masquer" : "Parametrer"}
+          </button>
+          ${isOpen ? `
+            <div class="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+              <div class="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+                <i data-lucide="sliders-horizontal" class="h-4 w-4"></i>
+                Commande prete a copier
+              </div>
+              <div class="grid gap-2 sm:grid-cols-2">
+                ${item.fields.map((field) => `
+                  <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    ${escapeHtml(field.label)}
+                    <input class="generator-input mt-1 h-9 w-full rounded-md border border-slate-300 bg-white px-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white" data-id="${item.id}" data-field="${field.name}" placeholder="${escapeHtml(field.placeholder)}" value="${escapeHtml((state.generatorValues[item.id] || {})[field.name] || field.default || "")}" />
+                  </label>
+                `).join("")}
+              </div>
+            </div>
+          ` : ""}
         </div>
       `;
     }
@@ -412,7 +497,16 @@
 
     function bindDynamicActions() {
       document.querySelectorAll(".copy-btn").forEach((button) => {
-        button.addEventListener("click", () => copyToClipboard(button.dataset.copy));
+        button.addEventListener("click", () => copyToClipboard(button.dataset.copy, button));
+      });
+      document.querySelectorAll(".generator-toggle").forEach((button) => {
+        button.addEventListener("click", () => {
+          const id = button.dataset.id;
+          state.openGenerators = state.openGenerators.includes(id)
+            ? state.openGenerators.filter((entry) => entry !== id)
+            : [...state.openGenerators, id];
+          render();
+        });
       });
       document.querySelectorAll(".favorite-btn").forEach((button) => {
         button.addEventListener("click", () => {
@@ -424,14 +518,20 @@
       });
       document.querySelectorAll(".generator-input").forEach((input) => {
         input.addEventListener("input", () => {
+          const cursor = input.selectionStart;
           state.generatorValues[input.dataset.id] ||= {};
           state.generatorValues[input.dataset.id][input.dataset.field] = input.value;
           render();
+          const nextInput = document.querySelector(`.generator-input[data-id="${input.dataset.id}"][data-field="${input.dataset.field}"]`);
+          if (nextInput) {
+            nextInput.focus();
+            nextInput.setSelectionRange(cursor, cursor);
+          }
         });
       });
     }
 
-    async function copyToClipboard(text) {
+    async function copyToClipboard(text, button) {
       try {
         await navigator.clipboard.writeText(text);
       } catch {
@@ -444,7 +544,19 @@
         document.execCommand("copy");
         fallback.remove();
       }
-      showToast("Copie !");
+      if (button) {
+        const original = button.innerHTML;
+        button.classList.add("border-emerald-400", "text-emerald-600", "dark:text-emerald-300");
+        button.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i><span>Copie !</span>`;
+        lucide.createIcons();
+        setTimeout(() => {
+          button.innerHTML = original;
+          button.classList.remove("border-emerald-400", "text-emerald-600", "dark:text-emerald-300");
+          lucide.createIcons();
+        }, 2000);
+      } else {
+        showToast("Copie !");
+      }
     }
 
     let toastTimer;
@@ -530,8 +642,9 @@
       els.empty.classList.toggle("hidden", items.length > 0);
       els.empty.classList.toggle("flex", items.length === 0);
       const hasFilters = state.search || state.category !== "Tous" || state.level !== "Tous" || state.view !== "Tous";
-      els.reset.classList.toggle("hidden", !hasFilters);
-      els.reset.classList.toggle("inline-flex", Boolean(hasFilters));
+      const hasAnyFilters = hasFilters || state.favoriteOnly;
+      els.reset.classList.toggle("hidden", !hasAnyFilters);
+      els.reset.classList.toggle("inline-flex", Boolean(hasAnyFilters));
 
       bindDynamicActions();
       lucide.createIcons();
@@ -544,20 +657,30 @@
 
     window.addEventListener("keydown", (event) => {
       const tag = document.activeElement?.tagName;
-      if (event.key === "/" && !["INPUT", "TEXTAREA"].includes(tag)) {
+      const isTyping = ["INPUT", "TEXTAREA"].includes(tag);
+      if ((event.key === "/" && !isTyping) || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) {
         event.preventDefault();
         els.search.focus();
+        els.search.select();
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        resetFilters();
+        els.search.blur();
       }
     });
 
-    els.reset.addEventListener("click", () => {
+    function resetFilters() {
       state.search = "";
       state.category = "Tous";
       state.level = "Tous";
       state.view = "Tous";
+      state.favoriteOnly = false;
       els.search.value = "";
       render();
-    });
+    }
+
+    els.reset.addEventListener("click", resetFilters);
 
     els.themeToggle.addEventListener("click", () => {
       state.theme = state.theme === "dark" ? "light" : "dark";
