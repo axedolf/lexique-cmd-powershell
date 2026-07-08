@@ -207,6 +207,26 @@
     "psTemplate": "Test-NetConnection -ComputerName {{target}} -TraceRoute"
   },
   {
+    "id": "test-port-tcp",
+    "category": "Reseau",
+    "level": "Avance",
+    "usage": "Diagnostic",
+    "equivalence": "Partielle",
+    "action": "Tester un port TCP",
+    "cmd": "telnet serveur.local 443",
+    "powershell": "Test-NetConnection -ComputerName serveur.local -Port 443",
+    "alias": ["tnc"],
+    "description": "Verifie si un port TCP repond sur une machine distante.",
+    "note": "Telnet n'est pas toujours installe. Test-NetConnection est la methode PowerShell la plus pratique.",
+    "example": "Test-NetConnection -ComputerName serveur.local -Port 443",
+    "fields": [
+      { "name": "target", "label": "Cible", "placeholder": "serveur.local", "default": "serveur.local" },
+      { "name": "port", "label": "Port", "placeholder": "443", "default": "443" }
+    ],
+    "cmdTemplate": "telnet {{target}} {{port}}",
+    "psTemplate": "Test-NetConnection -ComputerName {{target}} -Port {{port}}"
+  },
+  {
     "id": "tasklist-get-process",
     "category": "Systeme / Processus",
     "level": "Basique",
