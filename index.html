@@ -466,7 +466,7 @@
           if (normalize(item.cmd).includes(word) || normalize(item.powershell).includes(word)) score += 4;
           if ((item.alias || []).some((alias) => normalize(alias) === word)) score += 5;
         });
-        if (q.includes("port") && item.id.includes("tracert")) score += 5;
+        if (q.includes("port") && item.id.includes("test-port-tcp")) score += 8;
         if (q.includes("ip") && item.category === "Reseau") score += 2;
         if (q.includes("supprim") && item.id.includes("remove-item")) score += 6;
         return { item, score };
