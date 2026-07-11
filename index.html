@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="app-version" content="v6-ai-assistant" />
+  <meta name="app-version" content="v6-ai-fix" />
   <title>Lexique CMD / PowerShell</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,7 +59,7 @@
           <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wide">
             <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-200">Terminal Lab</span>
             <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">CMD -> PowerShell</span>
-            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V6.2 IA locale</span>
+            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V6.3 IA fix</span>
           </div>
           <h1 class="mt-3 text-3xl font-black tracking-normal text-white sm:text-4xl">Lexique CMD / PowerShell</h1>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
@@ -165,9 +165,9 @@
         <h2 class="mt-1 text-2xl font-black text-white">Explique ton besoin</h2>
         <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Exemple : "je dois tester si le port 443 repond", "creer un compte local", "diagnostiquer DNS". L'assistant analyse le lexique hors-ligne, sans envoyer tes donnees.</p>
       </div>
-      <form class="mt-4 flex flex-col gap-2 sm:flex-row" onsubmit="window.app.askAssistant(event)">
+      <form id="assistantForm" class="mt-4 flex flex-col gap-2 sm:flex-row" onsubmit="window.app.askAssistant(event)">
         <input id="assistantInput" class="h-12 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-4 text-sm text-white outline-none focus:border-emerald-400" placeholder="Que veux-tu faire ?" />
-        <button class="rounded-lg bg-emerald-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-emerald-300">Demander a l'IA</button>
+        <button type="submit" class="rounded-lg bg-emerald-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-emerald-300">Demander a l'IA</button>
       </form>
       <div class="mt-3 flex flex-wrap gap-2">
         <button class="rounded-full border border-slate-700 px-3 py-1.5 text-xs font-black text-slate-300 hover:border-emerald-400" onclick="window.app.quickAsk('tester un port')">Tester un port</button>
@@ -196,10 +196,10 @@
     <div id="aiPanelAnswer" class="max-h-[55vh] overflow-y-auto p-4 text-sm leading-6 text-slate-300 scroll-slim">
       Pose une question comme <code class="rounded bg-slate-800 px-1.5 py-0.5">tester le port 443</code> ou <code class="rounded bg-slate-800 px-1.5 py-0.5">creer un user local</code>.
     </div>
-    <form class="border-t border-slate-800 p-3" onsubmit="window.app.askAssistantPanel(event)">
+    <form id="aiPanelForm" class="border-t border-slate-800 p-3" onsubmit="window.app.askAssistantPanel(event)">
       <div class="flex gap-2">
         <input id="aiPanelInput" class="h-11 min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm text-white outline-none focus:border-emerald-400" placeholder="Demander a l'IA..." />
-        <button class="rounded-lg bg-emerald-400 px-3 text-sm font-black text-slate-950 hover:bg-emerald-300">OK</button>
+        <button type="submit" class="rounded-lg bg-emerald-400 px-3 text-sm font-black text-slate-950 hover:bg-emerald-300">OK</button>
       </div>
     </form>
   </aside>
@@ -258,8 +258,8 @@
       }
     ];
 
-    const APP_VERSION = "v6-ai-assistant";
-    const APP_CACHE_NAME = "lexique-cmd-powershell-v6-ai-assistant";
+    const APP_VERSION = "v6-ai-fix";
+    const APP_CACHE_NAME = "lexique-cmd-powershell-v6-ai-fix";
 
     const state = {
       commands: [],
@@ -707,6 +707,8 @@
       });
 
       if (item.adminRequired && /admin|administrateur|droit|privilege/.test(q)) score += 3;
+      if (/local|locale|locaux/.test(q) && item.category === "Utilisateurs") score += 10;
+      if (/local|locale|locaux/.test(q) && item.category === "Active Directory") score -= 6;
       if (/port|tcp|443|80|3389/.test(q) && /port|tcp/i.test(commandText(item))) score += 8;
       if (/dns|nom|resolution/.test(q) && /dns|resolve|nslookup/i.test(commandText(item))) score += 8;
       if (/internet|reseau|connexion|connectivite/.test(q) && /reseau|connection|net|ping|ipconfig/i.test(commandText(item))) score += 4;
@@ -792,13 +794,27 @@
       `;
     }
 
+    function assistantErrorHtml(error) {
+      return `
+        <div class="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-red-100">
+          <p class="font-black">L'assistant a rencontre un souci.</p>
+          <p class="mt-1 text-sm">Recharge la page puis reessaie. Detail technique : ${escapeHtml(error?.message || error || "erreur inconnue")}</p>
+        </div>
+      `;
+    }
+
     function answerAssistant(query, target = "tab") {
-      const html = renderAssistantResponse(query);
-      if (target === "panel") {
-        els.aiPanelAnswer.innerHTML = html;
-        return;
+      const targetEl = target === "panel" ? els.aiPanelAnswer : els.assistantAnswer;
+      targetEl.innerHTML = `<div class="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-3 font-black text-emerald-200">IA locale : analyse en cours...</div>`;
+      try {
+        const html = renderAssistantResponse(query);
+        targetEl.innerHTML = html;
+        targetEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        showToast("IA : reponse prete");
+      } catch (error) {
+        targetEl.innerHTML = assistantErrorHtml(error);
+        console.error(error);
       }
-      els.assistantAnswer.innerHTML = html;
     }
 
     window.app = {
@@ -907,18 +923,24 @@
       },
       quickAsk(query) {
         els.assistantInput.value = query;
+        state.tab = "assistant";
+        render();
         answerAssistant(query, "tab");
       },
       askAssistantPanel(event) {
         event.preventDefault();
         const query = els.aiPanelInput.value.trim();
         if (!query) return;
+        state.assistantOpen = true;
+        els.aiPanel.classList.remove("hidden");
         answerAssistant(query, "panel");
       },
       askAssistant(event) {
         event.preventDefault();
         const query = els.assistantInput.value.trim();
         if (!query) return;
+        state.tab = "assistant";
+        render();
         answerAssistant(query, "tab");
       },
       toggleTheme() {
