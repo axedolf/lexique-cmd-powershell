@@ -1,4 +1,4 @@
-const CACHE_NAME = "lexique-cmd-powershell-v6-search-fix";
+const CACHE_NAME = "lexique-cmd-powershell-v6-ai-assistant";
 const CACHE_PREFIX = "lexique-cmd-powershell-";
 
 const OFFLINE_ASSETS = [
