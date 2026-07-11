@@ -1,10 +1,11 @@
-const CACHE_NAME = "lexique-cmd-powershell-v6-script-generator";
+const CACHE_NAME = "lexique-cmd-powershell-v6-ux-compliance";
 const CACHE_PREFIX = "lexique-cmd-powershell-";
 
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
   "./commandes.json",
+  "./manifest.json",
   "./manifest.webmanifest",
   "./icon.svg",
   "./README.md",
