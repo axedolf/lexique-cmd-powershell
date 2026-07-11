@@ -1,7 +1,7 @@
 {
   "name": "Lexique CMD / PowerShell",
   "short_name": "CMD/PS",
-  "description": "Anti-seche interactive CMD et PowerShell pour techniciens Windows.",
+  "description": "Lexique CMD et PowerShell hors-ligne avec missions terrain, generateurs et assistant local.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

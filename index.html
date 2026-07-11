@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="app-version" content="v5-dashboard" />
+  <meta name="app-version" content="v6-offline-lab" />
   <title>Lexique CMD / PowerShell</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,11 +26,29 @@
   </script>
   <style>
     :root { color-scheme: dark; }
+    :root.light { color-scheme: light; }
     ::selection { background: rgba(45, 212, 191, .35); }
     .scroll-slim::-webkit-scrollbar { width: 8px; height: 8px; }
     .scroll-slim::-webkit-scrollbar-thumb { background: rgba(100,116,139,.65); border-radius: 999px; }
     .code-scroll::-webkit-scrollbar { height: 7px; }
     .code-scroll::-webkit-scrollbar-thumb { background: rgba(14,165,233,.7); border-radius: 999px; }
+    button:focus-visible, input:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(34, 211, 238, .75);
+      outline-offset: 3px;
+    }
+    .copy-ok {
+      border-color: rgba(74, 222, 128, .7) !important;
+      color: rgb(134, 239, 172) !important;
+    }
+    .light body { background: #f8fafc !important; color: #0f172a !important; }
+    .light .bg-slate-950, .light .bg-slate-950\/95 { background-color: #f8fafc !important; }
+    .light .bg-slate-900, .light .bg-slate-900\/80 { background-color: #ffffff !important; }
+    .light .bg-slate-800 { background-color: #e2e8f0 !important; }
+    .light .border-slate-800, .light .border-slate-700 { border-color: #cbd5e1 !important; }
+    .light .text-white, .light .text-slate-100, .light .text-slate-200 { color: #0f172a !important; }
+    .light .text-slate-300, .light .text-slate-400, .light .text-slate-500 { color: #475569 !important; }
+    .light input, .light pre { color: #0f172a !important; }
+    .light .shadow-panel { box-shadow: 0 18px 70px rgba(15, 23, 42, .12); }
   </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
@@ -41,7 +59,7 @@
           <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wide">
             <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-200">Terminal Lab</span>
             <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">CMD -> PowerShell</span>
-            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V5 Dashboard</span>
+            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V6 PWA offline</span>
           </div>
           <h1 class="mt-3 text-3xl font-black tracking-normal text-white sm:text-4xl">Lexique CMD / PowerShell</h1>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
@@ -76,8 +94,8 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
           <label class="relative block sm:w-96">
             <span class="sr-only">Recherche</span>
-            <input id="searchInput" type="search" class="h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 pr-24 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10" placeholder="Rechercher : ping, user, DNS..." oninput="window.app.setSearch(this.value)" />
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-xs text-slate-400">Ctrl K</span>
+            <input id="searchInput" type="search" class="h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 pr-28 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10" placeholder="Rechercher : ping, user, DNS..." oninput="window.app.setSearch(this.value)" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-xs text-slate-400">/ ou Ctrl K</span>
           </label>
           <button id="themeBtn" class="h-11 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm font-bold text-slate-200 transition hover:border-cyan-400" onclick="window.app.toggleTheme()">Mode</button>
         </div>
@@ -120,7 +138,11 @@
           <h2 class="mt-1 text-2xl font-black text-white">Missions terrain</h2>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Choisis une panne ou une action classique, puis suis les etapes dans l'ordre. Le script PowerShell complet est copiable.</p>
         </div>
-        <button class="rounded-lg bg-cyan-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300" onclick="window.app.copyMission()">Copier le script</button>
+        <div class="flex flex-wrap gap-2">
+          <button class="rounded-lg bg-cyan-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300" onclick="window.app.copyMission()">Copier PS</button>
+          <button class="rounded-lg border border-emerald-400/40 px-4 py-3 text-sm font-black text-emerald-200 hover:bg-emerald-400/10" onclick="window.app.exportMission('ps1')">Exporter .ps1</button>
+          <button class="rounded-lg border border-amber-400/40 px-4 py-3 text-sm font-black text-amber-100 hover:bg-amber-400/10" onclick="window.app.exportMission('bat')">Exporter .bat</button>
+        </div>
       </div>
       <div id="missionTabs" class="mt-4 flex gap-2 overflow-x-auto pb-1 scroll-slim"></div>
       <div id="missionDetail" class="mt-4"></div>
@@ -207,6 +229,9 @@
       }
     ];
 
+    const APP_VERSION = "v6-offline-lab";
+    const APP_CACHE_NAME = "lexique-cmd-powershell-v6-offline-lab";
+
     const state = {
       commands: [],
       filtered: [],
@@ -217,7 +242,8 @@
       level: "Tous",
       missionId: "net-down",
       favorites: JSON.parse(localStorage.getItem("cmdPsFavorites") || "[]"),
-      theme: localStorage.getItem("cmdPsTheme") || "dark"
+      theme: localStorage.getItem("cmdPsTheme") || "dark",
+      generatorValues: {}
     };
 
     const $ = (id) => document.getElementById(id);
@@ -263,7 +289,8 @@
         if (/^[A-Z][A-Za-z]+-[A-Z][A-Za-z]+/.test(token)) return `<span class="text-emerald-300 font-bold">${token}</span>`;
         if (/^-{1,2}[\w-]+/.test(token) || /^\/[a-z?]+/i.test(token)) return `<span class="text-cyan-300">${token}</span>`;
         if (/^\$[\w:]+/.test(token)) return `<span class="text-fuchsia-300">${token}</span>`;
-        if (/^[A-Z]:\\/.test(token) || /^\.\\/.test(token)) return `<span class="text-amber-200">${token}</span>`;
+        if (/^["'].*["']$/.test(token)) return `<span class="text-amber-200">${token}</span>`;
+        if (/^[A-Z]:\\/.test(token) || /^\.\\/.test(token) || /^[A-Z]+:\\/.test(token)) return `<span class="text-amber-200">${token}</span>`;
         return token;
       }).join("");
     }
@@ -274,6 +301,14 @@
 
     function scriptForMission(mission) {
       return mission.steps.map((step) => step[2]).join("\n");
+    }
+
+    function batForMission(mission) {
+      return [
+        "@echo off",
+        `REM Mission terrain : ${mission.title}`,
+        ...mission.steps.map((step) => step[1]).filter((command) => command && command !== "N/A")
+      ].join("\r\n");
     }
 
     function isFavorite(id) {
@@ -287,8 +322,26 @@
     function applyTemplate(template, item) {
       return String(template || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
         const field = (item.fields || []).find((entry) => entry.name === key);
-        return field?.default || field?.placeholder || `<${key}>`;
+        const value = state.generatorValues[item.id]?.[key];
+        return value || field?.default || field?.placeholder || `<${key}>`;
       });
+    }
+
+    function firstToken(command) {
+      return String(command || "").trim().split(/\s+/)[0] || "";
+    }
+
+    function learnSearchUrl(terms) {
+      return `https://learn.microsoft.com/search/?terms=${encodeURIComponent(terms)}`;
+    }
+
+    function docsFor(item) {
+      const psToken = firstToken(item.powershell);
+      const cmdToken = firstToken(item.cmd);
+      return {
+        ps: learnSearchUrl(`${psToken} PowerShell Microsoft Learn`),
+        cmd: learnSearchUrl(`${cmdToken} commande Windows Microsoft Learn`)
+      };
     }
 
     function getCmd(item) {
@@ -320,7 +373,7 @@
     function renderTabs() {
       document.querySelectorAll(".tab-btn").forEach((button) => {
         const active = button.dataset.tab === state.tab;
-        button.className = `h-10 shrink-0 rounded-lg px-4 text-sm font-black transition ${active ? "bg-cyan-300 text-slate-950" : "border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyan-400"}`;
+        button.className = `tab-btn h-10 shrink-0 rounded-lg px-4 text-sm font-black transition ${active ? "bg-cyan-300 text-slate-950" : "border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyan-400"}`;
       });
       ["explorer", "missions", "favoris", "assistant"].forEach((name) => {
         $(`${name}View`).classList.toggle("hidden", state.tab !== name);
@@ -366,13 +419,19 @@
       els.commandDetail.innerHTML = `
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p class="text-xs font-black uppercase text-cyan-300">${escapeHtml(item.category)} / ${escapeHtml(item.usage || "General")}</p>
+            <div class="flex flex-wrap gap-2 text-xs font-black uppercase">
+              <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-cyan-200">${escapeHtml(item.category)}</span>
+              <span class="rounded-full border border-slate-700 bg-slate-950 px-2.5 py-1 text-slate-300">${escapeHtml(item.level)}</span>
+              <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-emerald-200">${escapeHtml(item.equivalence || "Equivalence")}</span>
+              ${item.adminRequired ? `<span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-amber-100">Droits admin</span>` : ""}
+            </div>
             <h2 class="mt-1 text-2xl font-black text-white">${escapeHtml(item.action)}</h2>
             <p class="mt-2 text-sm leading-6 text-slate-300">${escapeHtml(item.description)}</p>
           </div>
           <button class="rounded-lg border ${isFavorite(item.id) ? "border-amber-300 bg-amber-300 text-slate-950" : "border-slate-700 bg-slate-950 text-slate-300"} px-3 py-2 text-sm font-black" onclick="window.app.toggleFavorite('${item.id}')">${isFavorite(item.id) ? "Favori" : "Ajouter favori"}</button>
         </div>
-        <div class="mt-5 grid gap-4">
+        ${renderGenerator(item)}
+        <div class="mt-5 grid gap-4 lg:grid-cols-2">
           ${codePanel("CMD", cmd, "cyan")}
           ${codePanel("PowerShell", ps, "emerald")}
         </div>
@@ -380,7 +439,37 @@
           <p><span class="font-black text-white">Alias :</span> ${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-800 px-1.5 py-0.5 text-xs">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</p>
           <p><span class="font-black text-white">Exemple :</span> <code class="rounded bg-slate-800 px-1.5 py-0.5 text-xs">${escapeHtml(item.examplePs || item.exampleCmd || item.example || ps)}</code></p>
           <p class="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-amber-100">${escapeHtml(item.note || "Verifier le contexte avant execution.")}</p>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <a class="rounded-lg border border-cyan-400/40 px-3 py-2 text-xs font-black text-cyan-200 hover:bg-cyan-400/10" href="${docsFor(item).cmd}" target="_blank" rel="noopener">Doc CMD Microsoft Learn</a>
+            <a class="rounded-lg border border-emerald-400/40 px-3 py-2 text-xs font-black text-emerald-200 hover:bg-emerald-400/10" href="${docsFor(item).ps}" target="_blank" rel="noopener">Doc PowerShell Microsoft Learn</a>
+          </div>
         </div>
+      `;
+    }
+
+    function renderGenerator(item) {
+      if (!item.fields?.length) return "";
+      return `
+        <section class="mt-5 rounded-lg border border-cyan-400/20 bg-cyan-400/5 p-4">
+          <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-xs font-black uppercase text-cyan-300">Generateur interactif</p>
+              <p class="mt-1 text-sm text-slate-300">Renseigne les champs : les commandes CMD et PowerShell se mettent a jour avant copie.</p>
+            </div>
+            <button class="rounded-md border border-slate-700 px-3 py-2 text-xs font-black text-slate-300 hover:border-cyan-400" onclick="window.app.resetGenerator('${item.id}')">Valeurs par defaut</button>
+          </div>
+          <div class="mt-3 grid gap-3 sm:grid-cols-2">
+            ${item.fields.map((field) => {
+              const value = state.generatorValues[item.id]?.[field.name] ?? field.default ?? "";
+              return `
+                <label class="block">
+                  <span class="text-xs font-black uppercase text-slate-400">${escapeHtml(field.label || field.name)}</span>
+                  <input class="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 font-mono text-sm text-white outline-none focus:border-cyan-400" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || "")}" oninput="window.app.updateGenerator('${item.id}', '${field.name}', this.value)" />
+                </label>
+              `;
+            }).join("")}
+          </div>
+        </section>
       `;
     }
 
@@ -390,7 +479,7 @@
         <section class="rounded-lg border border-slate-800 bg-slate-950 p-3">
           <div class="mb-2 flex items-center justify-between gap-3">
             <p class="text-xs font-black uppercase ${colorClass}">${label}</p>
-            <button class="rounded-md border border-slate-700 px-2 py-1 text-xs font-black text-slate-300 hover:border-cyan-400" onclick="window.app.copyText(\`${escapeForTemplate(command)}\`)">Copier</button>
+            <button class="copy-btn rounded-md border border-slate-700 px-2 py-1 text-xs font-black text-slate-300 hover:border-cyan-400" onclick="window.app.copyText(\`${escapeForTemplate(command)}\`, this)">Copier</button>
           </div>
           <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-900 px-3 py-3 font-mono text-sm leading-6 text-slate-100"><code>${highlight(command)}</code></pre>
         </section>
@@ -490,15 +579,33 @@
       showToast();
     }
 
-    async function clearOldCaches() {
-      localStorage.setItem("cmdPsAppVersion", "v5-dashboard");
-      if ("serviceWorker" in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((reg) => reg.unregister()));
-      }
+    function downloadFile(filename, content, type = "text/plain") {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function applyTheme() {
+      document.documentElement.classList.toggle("dark", state.theme === "dark");
+      document.documentElement.classList.toggle("light", state.theme !== "dark");
+      $("themeBtn").textContent = state.theme === "dark" ? "Mode clair" : "Mode sombre";
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", state.theme === "dark" ? "#07111f" : "#f8fafc");
+    }
+
+    async function prepareOffline() {
+      localStorage.setItem("cmdPsAppVersion", APP_VERSION);
       if ("caches" in window) {
         const keys = await caches.keys();
-        await Promise.all(keys.filter((key) => key.startsWith("lexique-cmd-powershell-")).map((key) => caches.delete(key)));
+        await Promise.all(keys.filter((key) => key.startsWith("lexique-cmd-powershell-") && key !== APP_CACHE_NAME).map((key) => caches.delete(key)));
+      }
+      if ("serviceWorker" in navigator) {
+        await navigator.serviceWorker.register("service-worker.js");
       }
     }
 
@@ -552,7 +659,36 @@
       copyMission() {
         copyText(scriptForMission(currentMission()));
       },
-      copyText,
+      exportMission(format) {
+        const mission = currentMission();
+        if (format === "bat") {
+          downloadFile(`${mission.id}.bat`, batForMission(mission), "application/bat");
+          showToast("BAT exporte");
+          return;
+        }
+        downloadFile(`${mission.id}.ps1`, `# Mission terrain : ${mission.title}\n${scriptForMission(mission)}\n`, "text/plain");
+        showToast("PS1 exporte");
+      },
+      updateGenerator(id, field, value) {
+        state.generatorValues[id] = { ...(state.generatorValues[id] || {}), [field]: value };
+        renderDetail();
+      },
+      resetGenerator(id) {
+        delete state.generatorValues[id];
+        renderDetail();
+      },
+      async copyText(text, button) {
+        await copyText(text);
+        if (button) {
+          const oldText = button.textContent;
+          button.textContent = "Copie !";
+          button.classList.add("copy-ok");
+          setTimeout(() => {
+            button.textContent = oldText;
+            button.classList.remove("copy-ok");
+          }, 1400);
+        }
+      },
       askAssistant(event) {
         event.preventDefault();
         const query = els.assistantInput.value.trim();
@@ -581,15 +717,18 @@
       },
       toggleTheme() {
         state.theme = state.theme === "dark" ? "light" : "dark";
-        document.documentElement.classList.toggle("dark", state.theme === "dark");
-        document.body.classList.toggle("bg-slate-100", state.theme !== "dark");
-        document.body.classList.toggle("text-slate-900", state.theme !== "dark");
         localStorage.setItem("cmdPsTheme", state.theme);
+        applyTheme();
       }
     };
 
     window.addEventListener("keydown", (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        els.search.focus();
+        els.search.select();
+      }
+      if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
         event.preventDefault();
         els.search.focus();
         els.search.select();
@@ -600,9 +739,10 @@
     });
 
     async function init() {
-      await clearOldCaches().catch(() => {});
+      applyTheme();
+      await prepareOffline().catch(() => {});
       try {
-        const response = await fetch("commandes.json?version=v5-dashboard", { cache: "no-store" });
+        const response = await fetch("commandes.json", { cache: "no-store" });
         state.commands = await response.json();
         state.selectedId = state.commands[0]?.id || "";
         render();

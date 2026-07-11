@@ -15,7 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://axedolf.github.io/lexique-cmd-powershell/?app=android-v5-dashboard";
+    private static final String APP_URL = "https://axedolf.github.io/lexique-cmd-powershell/?app=android-v6-offline-lab";
     private WebView webView;
 
     @Override
