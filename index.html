@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="app-version" content="v6-ai-fix" />
+  <meta name="app-version" content="v6-script-generator" />
   <title>Lexique CMD / PowerShell</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,7 +59,7 @@
           <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wide">
             <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-200">Terminal Lab</span>
             <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">CMD -> PowerShell</span>
-            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V6.3 IA fix</span>
+            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V6.4 Scripts</span>
           </div>
           <h1 class="mt-3 text-3xl font-black tracking-normal text-white sm:text-4xl">Lexique CMD / PowerShell</h1>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
@@ -88,6 +88,7 @@
         <nav class="flex gap-2 overflow-x-auto scroll-slim pb-1 lg:pb-0" aria-label="Navigation principale">
           <button class="tab-btn" data-tab="explorer" onclick="window.app.setTab('explorer')">Explorer</button>
           <button class="tab-btn" data-tab="missions" onclick="window.app.setTab('missions')">Missions terrain</button>
+          <button class="tab-btn" data-tab="scripts" onclick="window.app.setTab('scripts')">Generateur</button>
           <button class="tab-btn" data-tab="favoris" onclick="window.app.setTab('favoris')">Favoris</button>
           <button class="tab-btn" data-tab="assistant" onclick="window.app.setTab('assistant')">Assistant</button>
         </nav>
@@ -146,6 +147,46 @@
       </div>
       <div id="missionTabs" class="mt-4 flex gap-2 overflow-x-auto pb-1 scroll-slim"></div>
       <div id="missionDetail" class="mt-4"></div>
+    </section>
+
+    <section id="scriptsView" class="mt-4 hidden rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-xs font-black uppercase text-fuchsia-300">Automation Lab</p>
+          <h2 class="mt-1 text-2xl font-black text-white">Generateur de scripts</h2>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Choisis un scenario, remplis les champs, puis copie ou exporte un script PowerShell ou BAT pret a adapter.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="rounded-lg bg-fuchsia-400 px-4 py-3 text-sm font-black text-slate-950 hover:bg-fuchsia-300" onclick="window.app.copyGeneratedScript()">Copier script</button>
+          <button class="rounded-lg border border-emerald-400/40 px-4 py-3 text-sm font-black text-emerald-200 hover:bg-emerald-400/10" onclick="window.app.exportGeneratedScript('ps1')">Exporter .ps1</button>
+          <button class="rounded-lg border border-amber-400/40 px-4 py-3 text-sm font-black text-amber-100 hover:bg-amber-400/10" onclick="window.app.exportGeneratedScript('bat')">Exporter .bat</button>
+        </div>
+      </div>
+      <div class="mt-4 grid gap-4 lg:grid-cols-[330px_1fr]">
+        <aside class="rounded-xl border border-slate-800 bg-slate-950 p-3">
+          <p class="mb-3 text-xs font-black uppercase text-slate-500">Modeles</p>
+          <div id="scriptTemplateList" class="space-y-2"></div>
+        </aside>
+        <article class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+          <div id="scriptGeneratorForm"></div>
+          <div class="mt-4 grid gap-4 xl:grid-cols-2">
+            <section class="rounded-lg border border-slate-800 bg-slate-900 p-3">
+              <div class="mb-2 flex items-center justify-between gap-3">
+                <p class="text-xs font-black uppercase text-emerald-300">PowerShell</p>
+                <button class="rounded-md border border-slate-700 px-2 py-1 text-xs font-black text-slate-300 hover:border-emerald-400" onclick="window.app.copyGeneratedScript('ps1', this)">Copier</button>
+              </div>
+              <pre class="code-scroll max-h-[520px] overflow-auto whitespace-pre rounded bg-slate-950 px-3 py-3 font-mono text-xs leading-5 text-slate-100"><code id="generatedPsCode"></code></pre>
+            </section>
+            <section class="rounded-lg border border-slate-800 bg-slate-900 p-3">
+              <div class="mb-2 flex items-center justify-between gap-3">
+                <p class="text-xs font-black uppercase text-amber-300">BAT / CMD</p>
+                <button class="rounded-md border border-slate-700 px-2 py-1 text-xs font-black text-slate-300 hover:border-amber-400" onclick="window.app.copyGeneratedScript('bat', this)">Copier</button>
+              </div>
+              <pre class="code-scroll max-h-[520px] overflow-auto whitespace-pre rounded bg-slate-950 px-3 py-3 font-mono text-xs leading-5 text-slate-100"><code id="generatedBatCode"></code></pre>
+            </section>
+          </div>
+        </article>
+      </div>
     </section>
 
     <section id="favorisView" class="mt-4 hidden rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel">
@@ -258,8 +299,171 @@
       }
     ];
 
-    const APP_VERSION = "v6-ai-fix";
-    const APP_CACHE_NAME = "lexique-cmd-powershell-v6-ai-fix";
+    const scriptTemplates = [
+      {
+        id: "network-diagnostic",
+        title: "Diagnostic reseau complet",
+        category: "Reseau",
+        description: "Teste l'IP locale, le ping, le DNS, le port TCP et la route vers une cible.",
+        fields: [
+          { name: "target", label: "Cible DNS/IP", default: "google.fr" },
+          { name: "port", label: "Port TCP", default: "443" },
+          { name: "dns", label: "Serveur DNS de test", default: "8.8.8.8" }
+        ],
+        ps: [
+          "# Diagnostic reseau",
+          "$Target = \"{{target}}\"",
+          "$Port = {{port}}",
+          "Write-Host \"== Configuration IP ==\" -ForegroundColor Cyan",
+          "Get-NetIPConfiguration",
+          "Write-Host \"== Ping ==\" -ForegroundColor Cyan",
+          "Test-Connection -TargetName $Target -Count 4",
+          "Write-Host \"== DNS ==\" -ForegroundColor Cyan",
+          "Resolve-DnsName -Name $Target",
+          "Write-Host \"== Port TCP ==\" -ForegroundColor Cyan",
+          "Test-NetConnection -ComputerName $Target -Port $Port",
+          "Write-Host \"== Traceroute ==\" -ForegroundColor Cyan",
+          "Test-NetConnection -ComputerName $Target -TraceRoute"
+        ].join("\n"),
+        bat: [
+          "@echo off",
+          "echo == Configuration IP ==",
+          "ipconfig /all",
+          "echo.",
+          "echo == Ping ==",
+          "ping {{target}}",
+          "echo.",
+          "echo == DNS ==",
+          "nslookup {{target}} {{dns}}",
+          "echo.",
+          "echo == Port TCP via PowerShell ==",
+          "powershell -NoProfile -Command \"Test-NetConnection -ComputerName '{{target}}' -Port {{port}}\"",
+          "echo.",
+          "echo == Traceroute ==",
+          "tracert {{target}}"
+        ].join("\r\n")
+      },
+      {
+        id: "local-user-create",
+        title: "Creer un utilisateur local",
+        category: "Utilisateurs",
+        description: "Cree un compte local et peut l'ajouter au groupe Administrateurs.",
+        admin: true,
+        fields: [
+          { name: "username", label: "Nom utilisateur", default: "h_technicien" },
+          { name: "password", label: "Mot de passe", default: "P@ssword2026!" },
+          { name: "group", label: "Groupe local", default: "Administrateurs" }
+        ],
+        ps: [
+          "# Requiert une console PowerShell Administrateur",
+          "$UserName = \"{{username}}\"",
+          "$Password = ConvertTo-SecureString \"{{password}}\" -AsPlainText -Force",
+          "New-LocalUser -Name $UserName -Password $Password -FullName $UserName -Description \"Compte cree par script\"",
+          "Add-LocalGroupMember -Group \"{{group}}\" -Member $UserName",
+          "Get-LocalUser -Name $UserName"
+        ].join("\n"),
+        bat: [
+          "@echo off",
+          "REM Requiert une invite CMD Administrateur",
+          "net user {{username}} {{password}} /add",
+          "net localgroup {{group}} {{username}} /add",
+          "net user {{username}}"
+        ].join("\r\n")
+      },
+      {
+        id: "pc-audit",
+        title: "Audit rapide poste Windows",
+        category: "Systeme",
+        description: "Genere un rapport texte avec systeme, reseau, disques, processus et correctifs.",
+        fields: [
+          { name: "output", label: "Chemin rapport", default: "C:\\Temp\\audit-poste.txt" }
+        ],
+        ps: [
+          "$Report = \"{{output}}\"",
+          "New-Item -ItemType Directory -Path (Split-Path $Report) -Force | Out-Null",
+          "\"== Systeme ==\" | Out-File $Report",
+          "Get-ComputerInfo | Select-Object CsName,WindowsProductName,WindowsVersion,OsArchitecture | Out-File $Report -Append",
+          "\"`n== Reseau ==\" | Out-File $Report -Append",
+          "Get-NetIPConfiguration | Out-File $Report -Append",
+          "\"`n== Disques ==\" | Out-File $Report -Append",
+          "Get-Volume | Out-File $Report -Append",
+          "\"`n== Top processus CPU ==\" | Out-File $Report -Append",
+          "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 | Out-File $Report -Append",
+          "\"`n== Correctifs ==\" | Out-File $Report -Append",
+          "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 | Out-File $Report -Append",
+          "Write-Host \"Rapport genere : $Report\" -ForegroundColor Green"
+        ].join("\n"),
+        bat: [
+          "@echo off",
+          "if not exist C:\\Temp mkdir C:\\Temp",
+          "echo == Systeme == > {{output}}",
+          "systeminfo >> {{output}}",
+          "echo. >> {{output}}",
+          "echo == Reseau == >> {{output}}",
+          "ipconfig /all >> {{output}}",
+          "echo. >> {{output}}",
+          "echo == Disques == >> {{output}}",
+          "wmic logicaldisk get caption,freespace,size >> {{output}}",
+          "echo. >> {{output}}",
+          "echo == Processus == >> {{output}}",
+          "tasklist >> {{output}}",
+          "echo Rapport genere : {{output}}"
+        ].join("\r\n")
+      },
+      {
+        id: "service-restart",
+        title: "Diagnostiquer et relancer un service",
+        category: "Services",
+        description: "Controle l'etat d'un service, lit les erreurs systeme recentes et propose un redemarrage.",
+        admin: true,
+        fields: [
+          { name: "service", label: "Nom du service", default: "Spooler" }
+        ],
+        ps: [
+          "# Requiert parfois une console Administrateur",
+          "$Service = \"{{service}}\"",
+          "Get-Service -Name $Service",
+          "Get-CimInstance Win32_Service -Filter \"Name='$Service'\" | Select-Object Name,State,StartMode,PathName",
+          "Get-WinEvent -LogName System -MaxEvents 20 | Where-Object LevelDisplayName -eq 'Error' | Select-Object TimeCreated,ProviderName,Id,Message",
+          "Restart-Service -Name $Service -Force",
+          "Get-Service -Name $Service"
+        ].join("\n"),
+        bat: [
+          "@echo off",
+          "sc query {{service}}",
+          "sc qc {{service}}",
+          "wevtutil qe System /c:20 /f:text",
+          "net stop {{service}}",
+          "net start {{service}}",
+          "sc query {{service}}"
+        ].join("\r\n")
+      },
+      {
+        id: "firewall-port",
+        title: "Ouvrir un port pare-feu",
+        category: "Securite",
+        description: "Cree une regle entrante Windows Defender Firewall pour un port TCP.",
+        admin: true,
+        fields: [
+          { name: "name", label: "Nom de regle", default: "Application TCP" },
+          { name: "port", label: "Port TCP", default: "443" }
+        ],
+        ps: [
+          "# Requiert une console PowerShell Administrateur",
+          "New-NetFirewallRule -DisplayName \"{{name}}\" -Direction Inbound -Action Allow -Protocol TCP -LocalPort {{port}}",
+          "Get-NetFirewallRule -DisplayName \"{{name}}\""
+        ].join("\n"),
+        bat: [
+          "@echo off",
+          "REM Requiert une invite CMD Administrateur",
+          "netsh advfirewall firewall add rule name=\"{{name}}\" dir=in action=allow protocol=TCP localport={{port}}",
+          "netsh advfirewall firewall show rule name=\"{{name}}\""
+        ].join("\r\n")
+      }
+    ];
+
+    const APP_VERSION = "v6-script-generator";
+    const APP_CACHE_NAME = "lexique-cmd-powershell-v6-script-generator";
 
     const state = {
       commands: [],
@@ -270,6 +474,8 @@
       category: "Tous",
       level: "Tous",
       missionId: "net-down",
+      scriptId: "network-diagnostic",
+      scriptValues: {},
       favorites: JSON.parse(localStorage.getItem("cmdPsFavorites") || "[]"),
       theme: localStorage.getItem("cmdPsTheme") || "dark",
       generatorValues: {},
@@ -287,6 +493,10 @@
       favoritesList: $("favoritesList"),
       missionTabs: $("missionTabs"),
       missionDetail: $("missionDetail"),
+      scriptTemplateList: $("scriptTemplateList"),
+      scriptGeneratorForm: $("scriptGeneratorForm"),
+      generatedPsCode: $("generatedPsCode"),
+      generatedBatCode: $("generatedBatCode"),
       assistantInput: $("assistantInput"),
       assistantAnswer: $("assistantAnswer"),
       aiFab: $("aiFab"),
@@ -435,6 +645,27 @@
       return applyTemplate(item.psTemplate || item.powershell, item);
     }
 
+    function currentScriptTemplate() {
+      return scriptTemplates.find((template) => template.id === state.scriptId) || scriptTemplates[0];
+    }
+
+    function scriptValue(template, field) {
+      return state.scriptValues[template.id]?.[field.name] ?? field.default ?? "";
+    }
+
+    function applyScriptTemplate(content, template) {
+      return String(content || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
+        const field = (template.fields || []).find((entry) => entry.name === key);
+        if (!field) return `<${key}>`;
+        return scriptValue(template, field);
+      });
+    }
+
+    function generatedScript(format = "ps1") {
+      const template = currentScriptTemplate();
+      return applyScriptTemplate(format === "bat" ? template.bat : template.ps, template);
+    }
+
     function filterCommands() {
       const q = normalize(state.query.trim());
       state.filtered = state.commands.filter((item) => {
@@ -458,7 +689,7 @@
         const active = button.dataset.tab === state.tab;
         button.className = `tab-btn h-10 shrink-0 rounded-lg px-4 text-sm font-black transition ${active ? "bg-cyan-300 text-slate-950" : "border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyan-400"}`;
       });
-      ["explorer", "missions", "favoris", "assistant"].forEach((name) => {
+      ["explorer", "missions", "scripts", "favoris", "assistant"].forEach((name) => {
         $(`${name}View`).classList.toggle("hidden", state.tab !== name);
       });
     }
@@ -606,6 +837,46 @@
       `;
     }
 
+    function renderScriptGenerator() {
+      const template = currentScriptTemplate();
+      els.scriptTemplateList.innerHTML = scriptTemplates.map((entry) => {
+        const active = entry.id === template.id;
+        return `
+          <button class="w-full rounded-lg border p-3 text-left transition ${active ? "border-fuchsia-300 bg-fuchsia-300/10" : "border-slate-800 bg-slate-900 hover:border-fuchsia-400"}" onclick="window.app.setScriptTemplate('${entry.id}')">
+            <span class="text-xs font-black uppercase text-fuchsia-300">${escapeHtml(entry.category)}</span>
+            <span class="mt-1 block font-black text-white">${escapeHtml(entry.title)}</span>
+            <span class="mt-1 block text-xs leading-5 text-slate-400">${escapeHtml(entry.description)}</span>
+          </button>
+        `;
+      }).join("");
+
+      els.scriptGeneratorForm.innerHTML = `
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div class="flex flex-wrap gap-2 text-xs font-black uppercase">
+              <span class="rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2.5 py-1 text-fuchsia-200">${escapeHtml(template.category)}</span>
+              ${template.admin ? `<span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-amber-100">Droits admin</span>` : ""}
+            </div>
+            <h3 class="mt-2 text-xl font-black text-white">${escapeHtml(template.title)}</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-400">${escapeHtml(template.description)}</p>
+          </div>
+          <button class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-fuchsia-400" onclick="window.app.resetScriptValues()">Valeurs par defaut</button>
+        </div>
+        <div class="mt-4 grid gap-3 md:grid-cols-2">
+          ${template.fields.map((field) => `
+            <label class="block">
+              <span class="text-xs font-black uppercase text-slate-400">${escapeHtml(field.label)}</span>
+              <input class="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 font-mono text-sm text-white outline-none focus:border-fuchsia-400" value="${escapeHtml(scriptValue(template, field))}" oninput="window.app.updateScriptValue('${field.name}', this.value)" />
+            </label>
+          `).join("")}
+        </div>
+        ${template.admin ? `<p class="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">Attention : ce script demande probablement une console ouverte en Administrateur.</p>` : ""}
+      `;
+
+      els.generatedPsCode.innerHTML = highlight(generatedScript("ps1"));
+      els.generatedBatCode.innerHTML = highlight(generatedScript("bat"));
+    }
+
     function renderFavorites() {
       const items = state.commands.filter((item) => isFavorite(item.id));
       $("statFavorites").textContent = state.favorites.length;
@@ -635,6 +906,7 @@
       renderList();
       renderDetail();
       renderMissions();
+      renderScriptGenerator();
       renderFavorites();
       renderStats();
     }
@@ -880,6 +1152,33 @@
         state.missionId = id;
         state.tab = "missions";
         render();
+      },
+      setScriptTemplate(id) {
+        state.scriptId = id;
+        renderScriptGenerator();
+      },
+      updateScriptValue(field, value) {
+        const template = currentScriptTemplate();
+        state.scriptValues[template.id] = { ...(state.scriptValues[template.id] || {}), [field]: value };
+        renderScriptGenerator();
+      },
+      resetScriptValues() {
+        delete state.scriptValues[currentScriptTemplate().id];
+        renderScriptGenerator();
+      },
+      copyGeneratedScript(format = "ps1", button) {
+        window.app.copyText(generatedScript(format), button);
+      },
+      exportGeneratedScript(format) {
+        const template = currentScriptTemplate();
+        const safeName = template.id.replace(/[^a-z0-9-]/gi, "-");
+        if (format === "bat") {
+          downloadFile(`${safeName}.bat`, generatedScript("bat"), "application/bat");
+          showToast("BAT exporte");
+          return;
+        }
+        downloadFile(`${safeName}.ps1`, generatedScript("ps1"), "text/plain");
+        showToast("PS1 exporte");
       },
       copyMission() {
         copyText(scriptForMission(currentMission()));

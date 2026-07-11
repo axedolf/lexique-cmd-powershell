@@ -15,7 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://axedolf.github.io/lexique-cmd-powershell/?app=android-v6-ai-fix";
+    private static final String APP_URL = "https://axedolf.github.io/lexique-cmd-powershell/?app=android-v6-script-generator";
     private WebView webView;
 
     @Override
