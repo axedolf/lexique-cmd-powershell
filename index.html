@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#020617" />
-  <meta name="app-version" content="v4.3-inline-actions" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="app-version" content="v5-dashboard" />
   <title>Lexique CMD / PowerShell</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,358 +14,227 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "sans-serif"],
+            sans: ["Inter", "Segoe UI", "system-ui", "sans-serif"],
             mono: ["Cascadia Code", "Consolas", "ui-monospace", "monospace"]
           },
           boxShadow: {
-            glow: "0 0 0 1px rgba(56,189,248,.18), 0 22px 70px rgba(15,23,42,.22)"
+            panel: "0 18px 70px rgba(2, 6, 23, .24)"
           }
         }
       }
     };
   </script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    ::selection { background: rgba(14, 165, 233, .35); }
-    .code-scroll::-webkit-scrollbar { height: 6px; }
-    .code-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, .7); border-radius: 999px; }
-    .kbd { box-shadow: inset 0 -1px 0 rgba(0,0,0,.25); }
+    :root { color-scheme: dark; }
+    ::selection { background: rgba(45, 212, 191, .35); }
+    .scroll-slim::-webkit-scrollbar { width: 8px; height: 8px; }
+    .scroll-slim::-webkit-scrollbar-thumb { background: rgba(100,116,139,.65); border-radius: 999px; }
+    .code-scroll::-webkit-scrollbar { height: 7px; }
+    .code-scroll::-webkit-scrollbar-thumb { background: rgba(14,165,233,.7); border-radius: 999px; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900 antialiased transition-colors dark:bg-slate-950 dark:text-slate-100">
-  <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-    <header class="flex flex-col gap-5 border-b border-slate-300/70 pb-5 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between">
-      <div class="space-y-3">
-        <div class="flex flex-wrap gap-2">
-          <span class="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-sm font-medium text-sky-700 dark:text-sky-300">
-            <i data-lucide="terminal-square" class="h-4 w-4"></i>
-            Anti-seche Windows
-          </span>
-          <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-            <i data-lucide="bot" class="h-4 w-4"></i>
-            Assistant IA local
-          </span>
-        </div>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-4 sm:px-6 lg:px-8">
+    <header class="rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 class="text-3xl font-bold tracking-normal text-slate-950 dark:text-white sm:text-4xl">
-            Lexique CMD / PowerShell
-          </h1>
-          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400 sm:text-base">
-            Comparateur interactif, recherche bidirectionnelle, favoris, generateurs de commandes et assistant pour choisir la bonne syntaxe.
+          <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wide">
+            <span class="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-200">Terminal Lab</span>
+            <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">CMD -> PowerShell</span>
+            <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-100">V5 Dashboard</span>
+          </div>
+          <h1 class="mt-3 text-3xl font-black tracking-normal text-white sm:text-4xl">Lexique CMD / PowerShell</h1>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+            Une console de poche pour retrouver, comparer et copier les bonnes commandes Windows sans fouiller dans une grille confuse.
           </p>
         </div>
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <button id="themeToggle" type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
-          <i id="themeIcon" data-lucide="moon" class="h-5 w-5"></i>
-          <span id="themeLabel">Sombre</span>
-        </button>
-        <button id="exportData" type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
-          <i data-lucide="download" class="h-5 w-5"></i>
-          Export JSON
-        </button>
-        <button id="installApp" type="button" class="hidden h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
-          <i data-lucide="smartphone" class="h-5 w-5"></i>
-          Installer
-        </button>
-        <button id="assistantToggle" type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500">
-          <i data-lucide="sparkles" class="h-5 w-5"></i>
-          Assistant
-        </button>
+        <div class="grid grid-cols-3 gap-2 text-center sm:min-w-80">
+          <div class="rounded-lg border border-slate-800 bg-slate-950 p-3">
+            <p id="statCommands" class="text-2xl font-black text-cyan-300">--</p>
+            <p class="text-xs font-semibold text-slate-400">Commandes</p>
+          </div>
+          <div class="rounded-lg border border-slate-800 bg-slate-950 p-3">
+            <p id="statCategories" class="text-2xl font-black text-emerald-300">--</p>
+            <p class="text-xs font-semibold text-slate-400">Categories</p>
+          </div>
+          <div class="rounded-lg border border-slate-800 bg-slate-950 p-3">
+            <p id="statFavorites" class="text-2xl font-black text-amber-300">0</p>
+            <p class="text-xs font-semibold text-slate-400">Favoris</p>
+          </div>
+        </div>
       </div>
     </header>
 
-    <section class="sticky top-0 z-20 -mx-4 border-b border-slate-300/70 bg-slate-100/95 px-4 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-      <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <label class="relative block w-full xl:max-w-xl">
-          <span class="sr-only">Recherche</span>
-          <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"></i>
-          <input id="searchInput" type="search" placeholder="Rechercher CMD, PowerShell, alias, action, description..." class="h-12 w-full rounded-md border border-slate-300 bg-white pl-10 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-sky-400" />
-          <span class="kbd absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-slate-300 bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 sm:inline">/</span>
-          <div id="searchSuggestions" class="absolute left-0 right-0 top-14 z-30 hidden overflow-hidden rounded-md border border-slate-300 bg-white shadow-glow dark:border-slate-700 dark:bg-slate-900" role="listbox"></div>
-        </label>
-        <div id="categoryFilters" class="flex gap-2 overflow-x-auto pb-1 xl:justify-end xl:pb-0"></div>
-      </div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <div id="levelFilters" class="flex gap-2"></div>
-        <div id="viewFilters" class="flex gap-2"></div>
-      </div>
-    </section>
-
-    <section id="assistantPanel" class="mt-4 hidden rounded-lg border border-emerald-300 bg-white p-4 shadow-sm dark:border-emerald-500/30 dark:bg-slate-900">
-      <div class="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <div>
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <h2 class="inline-flex items-center gap-2 text-lg font-bold text-slate-950 dark:text-white">
-              <i data-lucide="bot" class="h-5 w-5 text-emerald-500"></i>
-              Assistant IA d'aide aux commandes
-            </h2>
-            <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200">Mode local</span>
-          </div>
-          <div id="assistantMessages" class="max-h-72 space-y-3 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 dark:border-slate-800 dark:bg-slate-950"></div>
-          <form id="assistantForm" class="mt-3 flex gap-2">
-            <input id="assistantInput" class="h-11 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Ex: je veux tester un port 443 ou supprimer un dossier" />
-            <button class="inline-flex h-11 items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-500" type="submit">
-              <i data-lucide="send" class="h-4 w-4"></i>
-              Demander
-            </button>
-          </form>
-        </div>
-        <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-          <h3 class="text-sm font-bold text-slate-950 dark:text-white">Idees rapides</h3>
-          <div id="assistantPrompts" class="mt-3 flex flex-wrap gap-2"></div>
-          <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
-            L'assistant analyse localement les donnees du lexique. Il ne transmet aucune donnee externe et reste compatible GitHub Pages.
-          </p>
+    <section class="sticky top-0 z-20 -mx-4 mt-4 border-y border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <nav class="flex gap-2 overflow-x-auto scroll-slim pb-1 lg:pb-0" aria-label="Navigation principale">
+          <button class="tab-btn" data-tab="explorer" onclick="window.app.setTab('explorer')">Explorer</button>
+          <button class="tab-btn" data-tab="missions" onclick="window.app.setTab('missions')">Missions terrain</button>
+          <button class="tab-btn" data-tab="favoris" onclick="window.app.setTab('favoris')">Favoris</button>
+          <button class="tab-btn" data-tab="assistant" onclick="window.app.setTab('assistant')">Assistant</button>
+        </nav>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <label class="relative block sm:w-96">
+            <span class="sr-only">Recherche</span>
+            <input id="searchInput" type="search" class="h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 pr-24 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10" placeholder="Rechercher : ping, user, DNS..." oninput="window.app.setSearch(this.value)" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-xs text-slate-400">Ctrl K</span>
+          </label>
+          <button id="themeBtn" class="h-11 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm font-bold text-slate-200 transition hover:border-cyan-400" onclick="window.app.toggleTheme()">Mode</button>
         </div>
       </div>
     </section>
 
-    <section id="fieldMode" class="mt-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <section id="explorerView" class="mt-4 grid flex-1 gap-4 lg:grid-cols-[330px_1fr]">
+      <aside class="rounded-xl border border-slate-800 bg-slate-900/80 p-3 shadow-panel">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm font-black uppercase text-slate-300">Filtres</h2>
+          <button class="rounded-md border border-slate-700 px-2 py-1 text-xs font-bold text-slate-300 hover:border-cyan-400" onclick="window.app.resetFilters()">Reset</button>
+        </div>
+        <div class="mt-3">
+          <p class="mb-2 text-xs font-bold uppercase text-slate-500">Categorie</p>
+          <div id="categoryRail" class="flex max-h-52 flex-wrap gap-2 overflow-y-auto scroll-slim pr-1"></div>
+        </div>
+        <div class="mt-4">
+          <p class="mb-2 text-xs font-bold uppercase text-slate-500">Niveau</p>
+          <div id="levelRail" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="mt-4 rounded-lg border border-slate-800 bg-slate-950 p-3">
+          <p id="resultCount" class="text-sm font-bold text-white">Chargement...</p>
+          <p class="mt-1 text-xs leading-5 text-slate-400">Selectionne une commande dans la liste. La fiche detaillee apparait a droite.</p>
+        </div>
+      </aside>
+
+      <section class="grid min-h-[620px] gap-4 xl:grid-cols-[390px_1fr]">
+        <div class="rounded-xl border border-slate-800 bg-slate-900/80 p-3 shadow-panel">
+          <h2 class="mb-3 text-sm font-black uppercase text-slate-300">Commandes trouvees</h2>
+          <div id="commandList" class="max-h-[650px] space-y-2 overflow-y-auto pr-1 scroll-slim"></div>
+        </div>
+        <article id="commandDetail" class="rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel"></article>
+      </section>
+    </section>
+
+    <section id="missionsView" class="mt-4 hidden rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p class="inline-flex items-center gap-2 text-xs font-bold uppercase text-sky-600 dark:text-sky-300">
-            <i data-lucide="clipboard-list" class="h-4 w-4"></i>
-            Scenarios terrain
-          </p>
-          <h2 class="mt-1 text-xl font-bold text-slate-950 dark:text-white">Playbooks d'intervention prets a copier</h2>
-          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Choisis un probleme courant, suis les etapes dans l'ordre, puis copie le script PowerShell complet si tu veux aller vite.
-          </p>
+          <p class="text-xs font-black uppercase text-cyan-300">Mode intervention</p>
+          <h2 class="mt-1 text-2xl font-black text-white">Missions terrain</h2>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Choisis une panne ou une action classique, puis suis les etapes dans l'ordre. Le script PowerShell complet est copiable.</p>
         </div>
-        <button id="copyScenario" type="button" class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-sky-600 px-3 text-sm font-bold text-white transition hover:bg-sky-500">
-          <i data-lucide="copy" class="h-4 w-4"></i>
-          Copier le script
-        </button>
+        <button class="rounded-lg bg-cyan-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300" onclick="window.app.copyMission()">Copier le script</button>
       </div>
-      <div id="scenarioTabs" class="mt-4 flex gap-2 overflow-x-auto pb-1"></div>
-      <div id="scenarioDetails" class="mt-4"></div>
+      <div id="missionTabs" class="mt-4 flex gap-2 overflow-x-auto pb-1 scroll-slim"></div>
+      <div id="missionDetail" class="mt-4"></div>
     </section>
 
-    <section id="favoritesBand" class="hidden py-4">
+    <section id="favorisView" class="mt-4 hidden rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel">
       <div class="flex items-center justify-between gap-3">
-        <h2 class="inline-flex items-center gap-2 text-base font-bold text-slate-950 dark:text-white">
-          <i data-lucide="star" class="h-5 w-5 text-amber-500"></i>
-          Favoris
-        </h2>
-        <button id="clearFavorites" class="text-sm font-semibold text-slate-500 hover:text-red-500 dark:text-slate-400" type="button">Vider</button>
-      </div>
-      <div id="favoritesList" class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
-    </section>
-
-    <section class="flex items-center justify-between gap-3 py-4">
-      <p id="resultCount" class="text-sm font-medium text-slate-600 dark:text-slate-400">Chargement...</p>
-      <button id="resetFilters" type="button" class="hidden h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
-        <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
-        Reinitialiser
-      </button>
-    </section>
-
-    <section id="commandGrid" class="grid gap-4 pb-8 md:grid-cols-2 xl:grid-cols-3"></section>
-
-    <section id="emptyState" class="hidden flex-1 items-center justify-center py-16 text-center">
-      <div class="max-w-md">
-        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-md bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-          <i data-lucide="search-x" class="h-7 w-7"></i>
+        <div>
+          <p class="text-xs font-black uppercase text-amber-300">Raccourcis perso</p>
+          <h2 class="mt-1 text-2xl font-black text-white">Mes favoris</h2>
         </div>
-        <h2 class="mt-4 text-xl font-bold text-slate-950 dark:text-white">Aucun resultat</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Modifie la recherche, le niveau ou la categorie.</p>
+        <button class="rounded-lg border border-red-400/40 px-3 py-2 text-sm font-bold text-red-200 hover:bg-red-500/10" onclick="window.app.clearFavorites()">Vider</button>
       </div>
+      <div id="favoritesList" class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3"></div>
+    </section>
+
+    <section id="assistantView" class="mt-4 hidden rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-panel">
+      <div>
+        <p class="text-xs font-black uppercase text-emerald-300">Assistant local</p>
+        <h2 class="mt-1 text-2xl font-black text-white">Demande en langage naturel</h2>
+        <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Exemple : "tester un port", "creer un utilisateur local", "voir les processus". Tout reste dans ton navigateur.</p>
+      </div>
+      <form class="mt-4 flex flex-col gap-2 sm:flex-row" onsubmit="window.app.askAssistant(event)">
+        <input id="assistantInput" class="h-12 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-4 text-sm text-white outline-none focus:border-emerald-400" placeholder="Que veux-tu faire ?" />
+        <button class="rounded-lg bg-emerald-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-emerald-300">Chercher</button>
+      </form>
+      <div id="assistantAnswer" class="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm leading-6 text-slate-300">Je suis pret.</div>
     </section>
   </main>
 
-  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 hidden -translate-x-1/2 rounded-md bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-glow dark:bg-white dark:text-slate-950" role="status" aria-live="polite">Copie !</div>
+  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 hidden -translate-x-1/2 rounded-lg bg-cyan-300 px-4 py-3 text-sm font-black text-slate-950 shadow-panel" role="status">Copie !</div>
 
   <script>
-    const categoryMeta = {
-      "Tous": { icon: "layout-grid", badge: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200" },
-      "Fichiers & Dossiers": { icon: "folder-tree", badge: "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200" },
-      "Reseau": { icon: "network", badge: "bg-cyan-100 text-cyan-800 dark:bg-cyan-400/15 dark:text-cyan-200" },
-      "Systeme / Processus": { icon: "cpu", badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200" },
-      "Utilisateurs": { icon: "users-round", badge: "border border-purple-300 bg-purple-100 text-purple-800 dark:border-purple-500/30 dark:bg-purple-900/30 dark:text-purple-400" },
-      "Droits / Utilisateurs": { icon: "shield-check", badge: "bg-violet-100 text-violet-800 dark:bg-violet-400/15 dark:text-violet-200" },
-      "Active Directory": { icon: "building-2", badge: "bg-indigo-100 text-indigo-800 dark:bg-indigo-400/15 dark:text-indigo-200" },
-      "Microsoft Entra ID": { icon: "cloud-cog", badge: "bg-blue-100 text-blue-800 dark:bg-blue-400/15 dark:text-blue-200" },
-      "Gestion a distance": { icon: "radio-tower", badge: "bg-teal-100 text-teal-800 dark:bg-teal-400/15 dark:text-teal-200" },
-      "Registre Windows": { icon: "database", badge: "bg-red-100 text-red-800 dark:bg-red-400/15 dark:text-red-200" },
-      "Services Windows": { icon: "settings-2", badge: "bg-lime-100 text-lime-800 dark:bg-lime-400/15 dark:text-lime-200" },
-      "Taches planifiees": { icon: "calendar-clock", badge: "bg-orange-100 text-orange-800 dark:bg-orange-400/15 dark:text-orange-200" },
-      "Disques & Volumes": { icon: "hard-drive", badge: "bg-stone-100 text-stone-800 dark:bg-stone-400/15 dark:text-stone-200" },
-      "Evenements & Logs": { icon: "scroll-text", badge: "bg-sky-100 text-sky-800 dark:bg-sky-400/15 dark:text-sky-200" },
-      "Securite & Audit": { icon: "shield-alert", badge: "bg-rose-100 text-rose-800 dark:bg-rose-400/15 dark:text-rose-200" },
-      "Packages & Mises a jour": { icon: "package-check", badge: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-400/15 dark:text-fuchsia-200" },
-      "Hyper-V": { icon: "boxes", badge: "bg-cyan-100 text-cyan-800 dark:bg-cyan-400/15 dark:text-cyan-200" },
-      "Docker": { icon: "container", badge: "bg-blue-100 text-blue-800 dark:bg-blue-400/15 dark:text-blue-200" },
-      "Imprimantes": { icon: "printer", badge: "bg-zinc-100 text-zinc-800 dark:bg-zinc-400/15 dark:text-zinc-200" },
-      "Variables d'environnement": { icon: "brackets", badge: "bg-green-100 text-green-800 dark:bg-green-400/15 dark:text-green-200" },
-      "Compression & Archives": { icon: "archive", badge: "bg-yellow-100 text-yellow-800 dark:bg-yellow-400/15 dark:text-yellow-200" },
-      "Comparaison": { icon: "git-compare", badge: "bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100" },
-      "Certificats": { icon: "badge-check", badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200" },
-      "Scripts & Automatisation": { icon: "file-code-2", badge: "bg-violet-100 text-violet-800 dark:bg-violet-400/15 dark:text-violet-200" },
-      "Depannage reseau avance": { icon: "activity", badge: "bg-cyan-100 text-cyan-800 dark:bg-cyan-400/15 dark:text-cyan-200" }
-    };
-
-    const state = {
-      commands: [],
-      search: "",
-      category: "Tous",
-      level: "Tous",
-      view: "Tous",
-      favoriteOnly: false,
-      activeIndex: -1,
-      suggestionIndex: -1,
-      favorites: JSON.parse(localStorage.getItem("cmdPsFavorites") || "[]"),
-      theme: localStorage.getItem("cmdPsTheme") || (window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark"),
-      generatorValues: {},
-      openGenerators: [],
-      openQrCodes: [],
-      openCards: [],
-      activeScenario: "reseau-panne-internet"
-    };
-
-    let deferredInstallPrompt = null;
-
-    const els = {
-      grid: document.getElementById("commandGrid"),
-      search: document.getElementById("searchInput"),
-      suggestions: document.getElementById("searchSuggestions"),
-      categories: document.getElementById("categoryFilters"),
-      levels: document.getElementById("levelFilters"),
-      views: document.getElementById("viewFilters"),
-      count: document.getElementById("resultCount"),
-      empty: document.getElementById("emptyState"),
-      reset: document.getElementById("resetFilters"),
-      toast: document.getElementById("toast"),
-      exportData: document.getElementById("exportData"),
-      installApp: document.getElementById("installApp"),
-      themeToggle: document.getElementById("themeToggle"),
-      themeIcon: document.getElementById("themeIcon"),
-      themeLabel: document.getElementById("themeLabel"),
-      assistantToggle: document.getElementById("assistantToggle"),
-      assistantPanel: document.getElementById("assistantPanel"),
-      assistantForm: document.getElementById("assistantForm"),
-      assistantInput: document.getElementById("assistantInput"),
-      assistantMessages: document.getElementById("assistantMessages"),
-      assistantPrompts: document.getElementById("assistantPrompts"),
-      favoritesBand: document.getElementById("favoritesBand"),
-      favoritesList: document.getElementById("favoritesList"),
-      clearFavorites: document.getElementById("clearFavorites"),
-      scenarioTabs: document.getElementById("scenarioTabs"),
-      scenarioDetails: document.getElementById("scenarioDetails"),
-      copyScenario: document.getElementById("copyScenario")
-    };
-
-    const fieldPlaybooks = [
+    const missions = [
       {
-        id: "reseau-panne-internet",
+        id: "net-down",
         title: "PC sans Internet",
-        icon: "wifi-off",
-        risk: "Lecture seule",
-        objective: "Identifier rapidement si la panne vient de la pile IP, du DNS, de la passerelle ou d'un service reseau.",
+        badge: "Reseau",
+        goal: "Comprendre si la panne vient de l'adresse IP, du DNS, de la passerelle ou d'un port bloque.",
         steps: [
-          { label: "Configuration IP", cmd: "ipconfig /all", ps: "Get-NetIPConfiguration" },
-          { label: "Ping passerelle", cmd: "ping <passerelle>", ps: "Test-Connection -TargetName <passerelle> -Count 4" },
-          { label: "Resolution DNS", cmd: "nslookup google.fr", ps: "Resolve-DnsName -Name google.fr" },
-          { label: "Test port web", cmd: "powershell -Command Test-NetConnection google.fr -Port 443", ps: "Test-NetConnection -ComputerName google.fr -Port 443" },
-          { label: "Route reseau", cmd: "tracert google.fr", ps: "Test-NetConnection -ComputerName google.fr -TraceRoute" }
-        ],
-        script: [
-          "Get-NetIPConfiguration",
-          "Test-Connection -TargetName 8.8.8.8 -Count 4",
-          "Resolve-DnsName -Name google.fr",
-          "Test-NetConnection -ComputerName google.fr -Port 443",
-          "Test-NetConnection -ComputerName google.fr -TraceRoute"
-        ].join("\n")
+          ["Configuration IP", "ipconfig /all", "Get-NetIPConfiguration"],
+          ["Ping public", "ping 8.8.8.8", "Test-Connection -TargetName 8.8.8.8 -Count 4"],
+          ["DNS", "nslookup google.fr", "Resolve-DnsName -Name google.fr"],
+          ["Port HTTPS", "powershell -Command Test-NetConnection google.fr -Port 443", "Test-NetConnection -ComputerName google.fr -Port 443"],
+          ["Route", "tracert google.fr", "Test-NetConnection -ComputerName google.fr -TraceRoute"]
+        ]
       },
       {
-        id: "ad-utilisateur-bloque",
+        id: "ad-user",
         title: "Utilisateur AD bloque",
-        icon: "user-lock",
-        risk: "Module RSAT requis",
-        objective: "Controler l'etat d'un compte Active Directory, ses groupes et les signaux de verrouillage.",
+        badge: "Active Directory",
+        goal: "Verifier l'etat d'un compte, ses groupes et les signaux de verrouillage.",
         steps: [
-          { label: "Informations compte", cmd: "net user <username> /domain", ps: "Get-ADUser -Identity <username> -Properties LockedOut,Enabled,LastLogonDate,PasswordLastSet" },
-          { label: "Groupes", cmd: "net user <username> /domain", ps: "Get-ADPrincipalGroupMembership -Identity <username> | Select-Object Name" },
-          { label: "Comptes verrouilles", cmd: "N/A", ps: "Search-ADAccount -LockedOut -UsersOnly" },
-          { label: "Deverrouiller", cmd: "N/A", ps: "Unlock-ADAccount -Identity <username>" }
-        ],
-        script: [
-          "$User = \"hugo\"",
-          "Get-ADUser -Identity $User -Properties LockedOut,Enabled,LastLogonDate,PasswordLastSet",
-          "Get-ADPrincipalGroupMembership -Identity $User | Select-Object Name",
-          "Search-ADAccount -LockedOut -UsersOnly"
-        ].join("\n")
+          ["Etat compte", "net user <username> /domain", "Get-ADUser -Identity <username> -Properties LockedOut,Enabled,LastLogonDate"],
+          ["Groupes", "net user <username> /domain", "Get-ADPrincipalGroupMembership -Identity <username> | Select-Object Name"],
+          ["Comptes verrouilles", "N/A", "Search-ADAccount -LockedOut -UsersOnly"],
+          ["Deverrouiller", "N/A", "Unlock-ADAccount -Identity <username>"]
+        ]
       },
       {
-        id: "service-ne-demarre-pas",
-        title: "Service ne demarre pas",
-        icon: "settings-2",
-        risk: "Admin parfois requis",
-        objective: "Verifier l'etat du service, les dependances, le processus associe et les erreurs systeme recentes.",
+        id: "service-fail",
+        title: "Service bloque",
+        badge: "Services",
+        goal: "Inspecter un service Windows qui refuse de demarrer.",
         steps: [
-          { label: "Etat service", cmd: "sc query <service>", ps: "Get-Service -Name <service>" },
-          { label: "Dependances", cmd: "sc qc <service>", ps: "Get-Service -Name <service> -DependentServices" },
-          { label: "Dernieres erreurs", cmd: "wevtutil qe System /c:20 /f:text", ps: "Get-WinEvent -LogName System -MaxEvents 20 | Where-Object LevelDisplayName -eq 'Error'" },
-          { label: "Redemarrage", cmd: "net stop <service> && net start <service>", ps: "Restart-Service -Name <service> -Force" }
-        ],
-        script: [
-          "$Service = \"Spooler\"",
-          "Get-Service -Name $Service",
-          "Get-Service -Name $Service -DependentServices",
-          "Get-WinEvent -LogName System -MaxEvents 20 | Where-Object LevelDisplayName -eq 'Error'",
-          "# Restart-Service -Name $Service -Force"
-        ].join("\n")
+          ["Etat", "sc query <service>", "Get-Service -Name <service>"],
+          ["Config", "sc qc <service>", "Get-CimInstance Win32_Service -Filter \"Name='<service>'\""],
+          ["Erreurs systeme", "wevtutil qe System /c:20 /f:text", "Get-WinEvent -LogName System -MaxEvents 20 | Where-Object LevelDisplayName -eq 'Error'"],
+          ["Relancer", "net stop <service> && net start <service>", "Restart-Service -Name <service> -Force"]
+        ]
       },
       {
-        id: "audit-poste-windows",
-        title: "Audit poste Windows",
-        icon: "shield-check",
-        risk: "Lecture seule",
-        objective: "Sortir une vue rapide systeme, reseau, disques, processus et correctifs installes.",
+        id: "audit-pc",
+        title: "Audit poste",
+        badge: "Audit",
+        goal: "Obtenir une vue rapide machine, reseau, disques, processus et correctifs.",
         steps: [
-          { label: "Infos machine", cmd: "systeminfo", ps: "Get-ComputerInfo" },
-          { label: "IP", cmd: "ipconfig /all", ps: "Get-NetIPConfiguration" },
-          { label: "Disques", cmd: "wmic logicaldisk get size,freespace,caption", ps: "Get-Volume" },
-          { label: "Processus lourds", cmd: "tasklist", ps: "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10" },
-          { label: "Correctifs", cmd: "wmic qfe list", ps: "Get-HotFix | Sort-Object InstalledOn -Descending" }
-        ],
-        script: [
-          "Get-ComputerInfo | Select-Object CsName,WindowsProductName,WindowsVersion,OsArchitecture",
-          "Get-NetIPConfiguration",
-          "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size",
-          "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name,CPU,Id",
-          "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10"
-        ].join("\n")
+          ["Systeme", "systeminfo", "Get-ComputerInfo | Select-Object CsName,WindowsProductName,WindowsVersion"],
+          ["Reseau", "ipconfig /all", "Get-NetIPConfiguration"],
+          ["Disques", "wmic logicaldisk get size,freespace,caption", "Get-Volume"],
+          ["Processus", "tasklist", "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10"],
+          ["Correctifs", "wmic qfe list", "Get-HotFix | Sort-Object InstalledOn -Descending"]
+        ]
       }
     ];
 
-    function normalize(value) {
-      return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    }
+    const state = {
+      commands: [],
+      filtered: [],
+      selectedId: "",
+      tab: "explorer",
+      query: "",
+      category: "Tous",
+      level: "Tous",
+      missionId: "net-down",
+      favorites: JSON.parse(localStorage.getItem("cmdPsFavorites") || "[]"),
+      theme: localStorage.getItem("cmdPsTheme") || "dark"
+    };
 
-    function compact(value) {
-      return normalize(value).replace(/[^a-z0-9]/g, "");
-    }
-
-    function levenshtein(a, b) {
-      if (!a) return b.length;
-      if (!b) return a.length;
-      const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
-      for (let i = 1; i <= a.length; i += 1) {
-        const current = [i];
-        for (let j = 1; j <= b.length; j += 1) {
-          current[j] = Math.min(
-            current[j - 1] + 1,
-            previous[j] + 1,
-            previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-          );
-        }
-        previous.splice(0, previous.length, ...current);
-      }
-      return previous[b.length];
-    }
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      search: $("searchInput"),
+      categoryRail: $("categoryRail"),
+      levelRail: $("levelRail"),
+      commandList: $("commandList"),
+      commandDetail: $("commandDetail"),
+      resultCount: $("resultCount"),
+      favoritesList: $("favoritesList"),
+      missionTabs: $("missionTabs"),
+      missionDetail: $("missionDetail"),
+      assistantInput: $("assistantInput"),
+      assistantAnswer: $("assistantAnswer"),
+      toast: $("toast")
+    };
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -376,220 +245,35 @@
         .replaceAll("'", "&#039;");
     }
 
+    function normalize(value) {
+      return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function commandText(item) {
+      return [
+        item.category, item.level, item.usage, item.action, item.cmd, item.powershell,
+        item.description, item.note, item.example, item.exampleCmd, item.examplePs,
+        ...(item.alias || []), ...(item.tags || []), ...(item.related || [])
+      ].join(" ");
+    }
+
     function highlight(command) {
-      const tokens = escapeHtml(command).split(/(\s+)/);
-      return tokens.map((token) => {
+      return escapeHtml(command).split(/(\s+)/).map((token) => {
         if (/^\s+$/.test(token)) return token;
-        if (/^-{1,2}[\w-]+/.test(token) || /^\/[a-z?]+/i.test(token)) return `<span class="text-sky-300">${token}</span>`;
+        if (/^[A-Z][A-Za-z]+-[A-Z][A-Za-z]+/.test(token)) return `<span class="text-emerald-300 font-bold">${token}</span>`;
+        if (/^-{1,2}[\w-]+/.test(token) || /^\/[a-z?]+/i.test(token)) return `<span class="text-cyan-300">${token}</span>`;
         if (/^\$[\w:]+/.test(token)) return `<span class="text-fuchsia-300">${token}</span>`;
         if (/^[A-Z]:\\/.test(token) || /^\.\\/.test(token)) return `<span class="text-amber-200">${token}</span>`;
-        if (/^["'].*["']$/.test(token)) return `<span class="text-emerald-200">${token}</span>`;
-        if (/^[A-Z][A-Za-z]+-[A-Z][A-Za-z]+/.test(token)) return `<span class="text-emerald-300 font-semibold">${token}</span>`;
         return token;
       }).join("");
     }
 
-    function refreshIcons() {
-      if (window.lucide?.createIcons) {
-        window.lucide.createIcons();
-      }
+    function currentMission() {
+      return missions.find((mission) => mission.id === state.missionId) || missions[0];
     }
 
-    function applyTheme() {
-      const isDark = state.theme === "dark";
-      document.documentElement.classList.toggle("dark", isDark);
-      els.themeIcon.setAttribute("data-lucide", isDark ? "moon" : "sun");
-      els.themeLabel.textContent = isDark ? "Sombre" : "Clair";
-      localStorage.setItem("cmdPsTheme", state.theme);
-      refreshIcons();
-    }
-
-    async function loadCommands() {
-      try {
-        const response = await fetch("commandes.json", { cache: "no-store" });
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        state.commands = await response.json();
-      } catch (error) {
-        els.count.textContent = "Impossible de charger commandes.json. Ouvre la version GitHub Pages ou lance un petit serveur local.";
-        console.error(error);
-      }
-    }
-
-    function searchableParts(item) {
-      return [
-        item.category,
-        item.level,
-        item.usage,
-        item.equivalence,
-        item.action,
-        item.cmd,
-        item.powershell,
-        item.description,
-        item.note,
-        item.example,
-        item.exampleCmd,
-        item.examplePs,
-        ...(item.tags || []),
-        ...(item.related || []),
-        item.adminRequired ? "administrateur admin privileges droits eleves" : "",
-        ...(item.alias || [])
-      ];
-    }
-
-    function allHaystack(item) {
-      return normalize(searchableParts(item).join(" "));
-    }
-
-    function fuzzyScore(item, query) {
-      const normalizedQuery = normalize(query.trim());
-      if (!normalizedQuery) return 1;
-
-      const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
-      const haystack = allHaystack(item);
-      const compactHaystack = compact(searchableParts(item).join(" "));
-      const compactQuery = compact(normalizedQuery);
-      const tokens = haystack.split(/[^a-z0-9]+/).filter(Boolean);
-      const fuzzyTokens = [...tokens, ...tokens.map((token) => token.replaceAll("net", ""))].filter(Boolean);
-
-      let score = 0;
-      if (haystack.includes(normalizedQuery)) score += 18;
-      if (compactQuery && compactHaystack.includes(compactQuery)) score += 16;
-      if (compactQuery && compactHaystack.replaceAll("net", "").includes(compactQuery)) score += 10;
-
-      queryWords.forEach((word) => {
-        const compactWord = compact(word);
-        if (!compactWord) return;
-        if (haystack.includes(word)) score += 6;
-        if (compactHaystack.includes(compactWord)) score += 5;
-        if ((item.alias || []).some((alias) => compact(alias) === compactWord)) score += 12;
-        if (compact(item.cmd).includes(compactWord)) score += 8;
-        if (compact(item.powershell).includes(compactWord)) score += 8;
-
-        const closeToken = fuzzyTokens.some((token) => {
-          if (Math.abs(token.length - compactWord.length) > 2) return false;
-          const distance = levenshtein(token, compactWord);
-          return distance <= (compactWord.length <= 5 ? 1 : 2);
-        });
-        if (closeToken) score += 4;
-      });
-
-      return score;
-    }
-
-    function filteredCommands() {
-      const query = state.search.trim();
-      return state.commands
-        .map((item, index) => ({ item, index, score: fuzzyScore(item, query) }))
-        .filter(({ item, score }) => {
-        const categoryOk = state.category === "Tous" || item.category === state.category;
-        const levelOk = state.level === "Tous" || item.level === state.level;
-        const viewOk = state.view === "Tous" || item.usage === state.view;
-        const favoriteOk = !state.favoriteOnly || isFavorite(item.id);
-        return categoryOk && levelOk && viewOk && favoriteOk && (!query || score > 0);
-      })
-        .sort((a, b) => query ? (b.score - a.score || a.item.action.localeCompare(b.item.action)) : a.index - b.index)
-        .map(({ item }) => item);
-    }
-
-    function pillButton(label, active, icon, kind, value) {
-      return `
-        <button type="button" data-kind="${kind}" data-value="${escapeHtml(label)}" onclick="window.lexiqueAction?.filter(this)" class="filter-btn inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-semibold transition ${
-          active
-            ? "border-sky-500 bg-sky-500 text-white shadow-sm"
-            : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        }">
-          ${icon ? `<i data-lucide="${icon}" class="h-4 w-4"></i>` : ""}
-          ${escapeHtml(value || label)}
-        </button>
-      `;
-    }
-
-    function renderFilters() {
-      const categories = ["Tous", ...new Set(state.commands.map((item) => item.category))];
-      const levels = ["Tous", ...new Set(state.commands.map((item) => item.level))];
-      const usages = ["Tous", ...new Set(state.commands.map((item) => item.usage))];
-
-      els.categories.innerHTML = categories.map((category) => pillButton(category, state.category === category, categoryMeta[category]?.icon || "tag", "category")).join("");
-      els.levels.innerHTML = levels.map((level) => pillButton(level, state.level === level, level === "Basique" ? "circle-dot" : level === "Avance" ? "braces" : "layers", "level")).join("");
-      els.views.innerHTML = [
-        pillButton("Mes favoris", state.favoriteOnly, "star", "favoriteOnly"),
-        ...usages.map((usage) => pillButton(usage, state.view === usage, "tag", "view"))
-      ].join("");
-
-    }
-
-    function setFilterFromButton(button) {
-      if (!button) return;
-      if (button.dataset.kind === "favoriteOnly") {
-        state.favoriteOnly = !state.favoriteOnly;
-      } else {
-        state[button.dataset.kind] = button.dataset.value;
-      }
-      render();
-    }
-
-    function suggestionItems() {
-      const terms = new Map();
-      state.commands.forEach((item) => {
-        [
-          item.action,
-          item.cmd,
-          item.powershell,
-          item.category,
-          item.usage,
-          ...(item.alias || []),
-          ...(item.tags || [])
-        ].filter(Boolean).forEach((term) => {
-          const clean = String(term).trim();
-          if (clean && clean !== "N/A") terms.set(clean, clean);
-        });
-      });
-
-      const query = state.search.trim();
-      return [...terms.values()]
-        .map((term) => ({ term, score: fuzzyTextScore(term, query) }))
-        .filter((entry) => query && entry.score > 0)
-        .sort((a, b) => b.score - a.score || a.term.localeCompare(b.term))
-        .slice(0, 8);
-    }
-
-    function fuzzyTextScore(value, query) {
-      const normalizedValue = normalize(value);
-      const normalizedQuery = normalize(query);
-      const compactValue = compact(value);
-      const compactQuery = compact(query);
-      if (!normalizedQuery) return 0;
-      let score = 0;
-      if (normalizedValue.includes(normalizedQuery)) score += 12;
-      if (compactValue.includes(compactQuery)) score += 10;
-      if (levenshtein(compactValue.slice(0, compactQuery.length + 2), compactQuery) <= 2) score += 5;
-      return score;
-    }
-
-    function renderSuggestions() {
-      const items = suggestionItems();
-      els.suggestions.classList.toggle("hidden", items.length === 0 || document.activeElement !== els.search);
-      els.suggestions.innerHTML = items.map((entry, index) => `
-        <button type="button" class="suggestion-btn flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition ${index === state.suggestionIndex ? "bg-sky-100 text-sky-800 dark:bg-sky-400/15 dark:text-sky-200" : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"}" data-term="${escapeHtml(entry.term)}" onclick="window.lexiqueAction?.suggestion(this)" role="option">
-          <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
-          <span class="truncate">${escapeHtml(entry.term)}</span>
-        </button>
-      `).join("");
-
-      document.querySelectorAll(".suggestion-btn").forEach((button) => {
-        button.addEventListener("mousedown", (event) => {
-          event.preventDefault();
-          chooseSuggestion(button);
-        });
-      });
-    }
-
-    function chooseSuggestion(button) {
-      if (!button?.dataset.term) return;
-      state.search = button.dataset.term;
-      els.search.value = state.search;
-      state.suggestionIndex = -1;
-      render();
+    function scriptForMission(mission) {
+      return mission.steps.map((step) => step[2]).join("\n");
     }
 
     function isFavorite(id) {
@@ -601,610 +285,334 @@
     }
 
     function applyTemplate(template, item) {
-      return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-        const values = state.generatorValues[item.id] || {};
+      return String(template || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
         const field = (item.fields || []).find((entry) => entry.name === key);
-        return values[key] || field?.default || field?.placeholder || "";
+        return field?.default || field?.placeholder || `<${key}>`;
       });
     }
 
-    function commandBlock(item, label, command, accentClass) {
-      return `
-        <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/80">
-          <div class="mb-2 flex items-center justify-between gap-2">
-            <span class="text-xs font-bold uppercase tracking-normal ${accentClass}">${label}</span>
-            <button type="button" class="copy-btn inline-flex h-8 min-w-20 items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-sky-400 dark:hover:text-sky-300" data-copy="${escapeHtml(command)}">
-              <i data-lucide="copy" class="h-4 w-4"></i>
-              <span>Copier</span>
-            </button>
-          </div>
-          <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-sm leading-6 text-slate-100"><code>${highlight(command)}</code></pre>
-        </div>
-      `;
+    function getCmd(item) {
+      return applyTemplate(item.cmdTemplate || item.cmd, item);
     }
 
-    function examples(item) {
-      if (item.exampleCmd || item.examplePs) {
-        return `
-          <div class="grid gap-2">
-            ${item.exampleCmd ? `<p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple CMD :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.exampleCmd)}</code></p>` : ""}
-            ${item.examplePs ? `<p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple PS :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.examplePs)}</code></p>` : ""}
-          </div>
-        `;
+    function getPs(item) {
+      return applyTemplate(item.psTemplate || item.powershell, item);
+    }
+
+    function filterCommands() {
+      const q = normalize(state.query.trim());
+      state.filtered = state.commands.filter((item) => {
+        const categoryOk = state.category === "Tous" || item.category === state.category;
+        const levelOk = state.level === "Tous" || item.level === state.level;
+        const queryOk = !q || normalize(commandText(item)).includes(q) || normalize(commandText(item)).replace(/[^a-z0-9]/g, "").includes(q.replace(/[^a-z0-9]/g, ""));
+        return categoryOk && levelOk && queryOk;
+      });
+      if (!state.filtered.some((item) => item.id === state.selectedId)) {
+        state.selectedId = state.filtered[0]?.id || "";
       }
-
-      return `<p class="text-slate-600 dark:text-slate-400"><span class="font-semibold text-slate-800 dark:text-slate-200">Exemple :</span> <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(item.example)}</code></p>`;
     }
 
-    function generator(item) {
-      if (!item.fields?.length) return "";
-      const isOpen = state.openGenerators.includes(item.id);
-      return `
-        <div class="mt-4">
-          <button type="button" class="generator-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}" onclick="window.lexiqueAction?.generator(this, event)">
-            <i data-lucide="wand-sparkles" class="h-4 w-4"></i>
-            ${isOpen ? "Masquer" : "Parametrer"}
-          </button>
-          ${isOpen ? `
-            <div class="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-              <div class="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
-                <i data-lucide="sliders-horizontal" class="h-4 w-4"></i>
-                Commande prete a copier
-              </div>
-              <div class="grid gap-2 sm:grid-cols-2">
-                ${item.fields.map((field) => `
-                  <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    ${escapeHtml(field.label)}
-                    <input class="generator-input mt-1 h-9 w-full rounded-md border border-slate-300 bg-white px-2 font-mono text-xs text-slate-900 outline-none focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white" data-id="${item.id}" data-field="${field.name}" placeholder="${escapeHtml(field.placeholder)}" value="${escapeHtml((state.generatorValues[item.id] || {})[field.name] || field.default || "")}" />
-                  </label>
-                `).join("")}
-              </div>
+    function chip(label, active, kind) {
+      const action = kind === "category" ? "window.app.setCategory(this.dataset.value)" : "window.app.setLevel(this.dataset.value)";
+      return `<button data-value="${escapeHtml(label)}" class="rounded-full border px-3 py-1.5 text-xs font-black transition ${active ? "border-cyan-300 bg-cyan-300 text-slate-950" : "border-slate-700 bg-slate-950 text-slate-300 hover:border-cyan-400"}" onclick="${action}">${escapeHtml(label)}</button>`;
+    }
+
+    function renderTabs() {
+      document.querySelectorAll(".tab-btn").forEach((button) => {
+        const active = button.dataset.tab === state.tab;
+        button.className = `h-10 shrink-0 rounded-lg px-4 text-sm font-black transition ${active ? "bg-cyan-300 text-slate-950" : "border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyan-400"}`;
+      });
+      ["explorer", "missions", "favoris", "assistant"].forEach((name) => {
+        $(`${name}View`).classList.toggle("hidden", state.tab !== name);
+      });
+    }
+
+    function renderFilters() {
+      const categories = ["Tous", ...new Set(state.commands.map((item) => item.category))];
+      const levels = ["Tous", ...new Set(state.commands.map((item) => item.level))];
+      els.categoryRail.innerHTML = categories.map((category) => chip(category, state.category === category, "category")).join("");
+      els.levelRail.innerHTML = levels.map((level) => chip(level, state.level === level, "level")).join("");
+    }
+
+    function renderList() {
+      els.resultCount.textContent = `${state.filtered.length} commande${state.filtered.length > 1 ? "s" : ""}`;
+      if (!state.filtered.length) {
+        els.commandList.innerHTML = `<div class="rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Aucun resultat. Essaie un autre mot-cle.</div>`;
+        return;
+      }
+      els.commandList.innerHTML = state.filtered.map((item) => {
+        const active = item.id === state.selectedId;
+        return `
+          <button class="w-full rounded-lg border p-3 text-left transition ${active ? "border-cyan-300 bg-cyan-300/10" : "border-slate-800 bg-slate-950 hover:border-cyan-500"}" onclick="window.app.selectCommand('${item.id}')">
+            <div class="flex items-start justify-between gap-2">
+              <p class="font-black text-white">${escapeHtml(item.action)}</p>
+              <span class="shrink-0 rounded-full bg-slate-800 px-2 py-1 text-[11px] font-bold text-slate-300">${escapeHtml(item.level)}</span>
             </div>
-          ` : ""}
+            <p class="mt-1 text-xs font-bold text-cyan-300">${escapeHtml(item.category)}</p>
+            <p class="mt-2 truncate font-mono text-xs text-slate-400">${escapeHtml(item.powershell)}</p>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderDetail() {
+      const item = state.commands.find((entry) => entry.id === state.selectedId);
+      if (!item) {
+        els.commandDetail.innerHTML = `<div class="grid h-full place-items-center text-center text-slate-400">Selectionne une commande.</div>`;
+        return;
+      }
+      const cmd = getCmd(item);
+      const ps = getPs(item);
+      els.commandDetail.innerHTML = `
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="text-xs font-black uppercase text-cyan-300">${escapeHtml(item.category)} / ${escapeHtml(item.usage || "General")}</p>
+            <h2 class="mt-1 text-2xl font-black text-white">${escapeHtml(item.action)}</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-300">${escapeHtml(item.description)}</p>
+          </div>
+          <button class="rounded-lg border ${isFavorite(item.id) ? "border-amber-300 bg-amber-300 text-slate-950" : "border-slate-700 bg-slate-950 text-slate-300"} px-3 py-2 text-sm font-black" onclick="window.app.toggleFavorite('${item.id}')">${isFavorite(item.id) ? "Favori" : "Ajouter favori"}</button>
+        </div>
+        <div class="mt-5 grid gap-4">
+          ${codePanel("CMD", cmd, "cyan")}
+          ${codePanel("PowerShell", ps, "emerald")}
+        </div>
+        <div class="mt-5 grid gap-3 rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm leading-6 text-slate-300">
+          <p><span class="font-black text-white">Alias :</span> ${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-800 px-1.5 py-0.5 text-xs">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</p>
+          <p><span class="font-black text-white">Exemple :</span> <code class="rounded bg-slate-800 px-1.5 py-0.5 text-xs">${escapeHtml(item.examplePs || item.exampleCmd || item.example || ps)}</code></p>
+          <p class="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-amber-100">${escapeHtml(item.note || "Verifier le contexte avant execution.")}</p>
         </div>
       `;
     }
 
-    function qrPayload(item, cmd, ps) {
-      return [
-        `Lexique CMD/PowerShell - ${item.action}`,
-        `Categorie: ${item.category}`,
-        `Niveau: ${item.level}`,
-        `CMD: ${cmd}`,
-        `PowerShell: ${ps}`,
-        item.example ? `Exemple: ${item.example}` : "",
-        item.note ? `Note: ${item.note}` : ""
-      ].filter(Boolean).join("\n");
-    }
-
-    function qrPanel(item, cmd, ps) {
-      const isOpen = state.openQrCodes.includes(item.id);
-      const payload = qrPayload(item, cmd, ps);
+    function codePanel(label, command, color) {
+      const colorClass = color === "emerald" ? "text-emerald-300" : "text-cyan-300";
       return `
-        <div class="mt-3">
-          <button type="button" class="qr-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}" onclick="window.lexiqueAction?.qr(this, event)">
-            <i data-lucide="qr-code" class="h-4 w-4"></i>
-            ${isOpen ? "Masquer QR" : "QR code"}
-          </button>
-          ${isOpen ? `
-            <div class="mt-3 flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60 sm:flex-row sm:items-center">
-              <div class="qr-code flex h-36 w-36 shrink-0 items-center justify-center rounded-md bg-white p-2 text-center text-[10px] leading-4 text-slate-500" data-payload="${escapeHtml(payload)}">
-                QR indisponible
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Partage rapide</p>
-                <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">Scanne ce QR code pour recuperer l'action, les syntaxes CMD et PowerShell, et la note principale.</p>
-                <button type="button" class="copy-btn mt-2 inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300" data-copy="${escapeHtml(payload)}">
-                  <i data-lucide="copy" class="h-4 w-4"></i>
-                  Copier le contenu QR
-                </button>
-              </div>
-            </div>
-          ` : ""}
-        </div>
+        <section class="rounded-lg border border-slate-800 bg-slate-950 p-3">
+          <div class="mb-2 flex items-center justify-between gap-3">
+            <p class="text-xs font-black uppercase ${colorClass}">${label}</p>
+            <button class="rounded-md border border-slate-700 px-2 py-1 text-xs font-black text-slate-300 hover:border-cyan-400" onclick="window.app.copyText(\`${escapeForTemplate(command)}\`)">Copier</button>
+          </div>
+          <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-900 px-3 py-3 font-mono text-sm leading-6 text-slate-100"><code>${highlight(command)}</code></pre>
+        </section>
       `;
     }
 
-    function card(item, compact = false) {
-      const meta = categoryMeta[item.category] || categoryMeta["Tous"];
-      const cmd = applyTemplate(item.cmdTemplate || item.cmd, item);
-      const ps = applyTemplate(item.psTemplate || item.powershell, item);
-      const isOpen = compact || state.openCards.includes(item.id);
-      const eqClasses = item.equivalence === "Parfaite"
-        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200"
-        : "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200";
-      return `
-        <article id="card-${item.id}" data-id="${item.id}" tabindex="-1" onclick="window.lexiqueAction?.card(this, event)" class="command-card flex h-full cursor-pointer flex-col rounded-lg border ${state.activeIndex >= 0 && filteredCommands()[state.activeIndex]?.id === item.id ? "border-sky-500 ring-4 ring-sky-500/15" : "border-slate-200 dark:border-slate-800"} bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:bg-slate-900">
-          <div class="mb-4 flex items-start justify-between gap-3">
-            <div class="flex flex-wrap gap-2">
-              <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${meta.badge}">
-                <i data-lucide="${meta.icon}" class="h-3.5 w-3.5"></i>${escapeHtml(item.category)}
-              </span>
-              <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(item.level)}</span>
-              <span class="rounded-full px-2.5 py-1 text-xs font-bold ${eqClasses}">${escapeHtml(item.equivalence)}</span>
-              ${item.adminRequired || item.category === "Utilisateurs" ? `<span class="inline-flex items-center gap-1 rounded-full border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-3.5 w-3.5"></i>Admin requis</span>` : ""}
-            </div>
-            <button type="button" class="favorite-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-500 transition hover:text-amber-500 dark:border-slate-700 dark:bg-slate-900 ${isFavorite(item.id) ? "text-amber-500" : ""}" data-id="${item.id}" onclick="window.lexiqueAction?.favorite(this, event)" aria-label="Favori">
-              <i data-lucide="star" class="h-5 w-5 ${isFavorite(item.id) ? "fill-current" : ""}"></i>
-            </button>
-          </div>
-          <h2 class="text-lg font-bold leading-snug text-slate-950 dark:text-white">${escapeHtml(item.action)}</h2>
-          <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">${escapeHtml(item.description)}</p>
-          <div class="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-            <div class="flex items-center justify-between gap-3">
-              <div class="min-w-0">
-                <p class="truncate font-mono text-xs text-slate-600 dark:text-slate-300">${escapeHtml(cmd)}</p>
-                <p class="mt-1 truncate font-mono text-xs text-emerald-700 dark:text-emerald-300">${escapeHtml(ps)}</p>
-              </div>
-              <button type="button" class="card-toggle inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}" onclick="window.lexiqueAction?.toggle(this, event)">
-                <i data-lucide="${isOpen ? "chevron-up" : "chevron-down"}" class="h-4 w-4"></i>
-                ${isOpen ? "Masquer" : "Voir"}
-              </button>
-            </div>
-          </div>
-          ${isOpen ? `
-            <div class="mt-4 grid gap-3">
-              ${commandBlock(item, "CMD", cmd, "text-sky-700 dark:text-sky-300")}
-              ${commandBlock(item, "PowerShell", ps, "text-emerald-700 dark:text-emerald-300")}
-            </div>
-            ${compact ? "" : generator(item)}
-            ${compact ? "" : qrPanel(item, cmd, ps)}
-            <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-              ${item.adminRequired || item.category === "Utilisateurs" ? `<p class="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-4 w-4"></i>Requiert des droits Administrateur</p>` : ""}
-              <p class="flex flex-wrap gap-2 text-slate-600 dark:text-slate-400">
-                <span class="font-semibold text-slate-800 dark:text-slate-200">Alias PowerShell :</span>
-                <span>${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</span>
-              </p>
-              ${examples(item)}
-              <p class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">${escapeHtml(item.note)}</p>
-            </div>
-          ` : ""}
-        </article>
-      `;
+    function escapeForTemplate(value) {
+      return String(value ?? "").replaceAll("\\", "\\\\").replaceAll("`", "\\`").replaceAll("${", "\\${");
     }
 
-    function renderFavorites() {
-      const items = state.commands.filter((item) => isFavorite(item.id));
-      els.favoritesBand.classList.toggle("hidden", items.length === 0);
-      els.favoritesList.innerHTML = items.map((item) => card(item, true)).join("");
-    }
-
-    function activePlaybook() {
-      return fieldPlaybooks.find((playbook) => playbook.id === state.activeScenario) || fieldPlaybooks[0];
-    }
-
-    function renderFieldMode() {
-      const active = activePlaybook();
-      els.scenarioTabs.innerHTML = fieldPlaybooks.map((playbook) => `
-        <button type="button" class="scenario-tab inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-bold transition ${
-          playbook.id === active.id
-            ? "border-sky-500 bg-sky-500 text-white"
-            : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        }" data-id="${playbook.id}" onclick="window.lexiqueAction?.scenario(this)">
-          <i data-lucide="${playbook.icon}" class="h-4 w-4"></i>
-          ${escapeHtml(playbook.title)}
+    function renderMissions() {
+      els.missionTabs.innerHTML = missions.map((mission) => `
+        <button class="shrink-0 rounded-lg border px-4 py-2 text-sm font-black transition ${mission.id === state.missionId ? "border-cyan-300 bg-cyan-300 text-slate-950" : "border-slate-700 bg-slate-950 text-slate-300 hover:border-cyan-400"}" onclick="window.app.setMission('${mission.id}')">
+          ${escapeHtml(mission.title)}
         </button>
       `).join("");
-
-      els.scenarioDetails.innerHTML = `
-        <div class="grid gap-4 xl:grid-cols-[1fr_420px]">
-          <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-            <div class="flex flex-wrap items-center gap-2">
-              <h3 class="text-base font-bold text-slate-950 dark:text-white">${escapeHtml(active.title)}</h3>
-              <span class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-100">
-                <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
-                ${escapeHtml(active.risk)}
-              </span>
-            </div>
-            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">${escapeHtml(active.objective)}</p>
-            <div class="mt-4 grid gap-3">
-              ${active.steps.map((step, index) => `
-                <div class="rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                  <div class="mb-2 flex items-center justify-between gap-2">
-                    <p class="text-sm font-bold text-slate-900 dark:text-white">${index + 1}. ${escapeHtml(step.label)}</p>
-                    <button type="button" class="copy-btn inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300" data-copy="${escapeHtml(step.ps)}">
-                      <i data-lucide="copy" class="h-4 w-4"></i>
-                      PS
-                    </button>
-                  </div>
-                  <div class="grid gap-2 lg:grid-cols-2">
-                    <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-slate-100"><code><span class="text-sky-300">CMD</span> ${highlight(step.cmd)}</code></pre>
-                    <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-slate-100"><code><span class="text-emerald-300">PS</span> ${highlight(step.ps)}</code></pre>
+      const mission = currentMission();
+      els.missionDetail.innerHTML = `
+        <div class="grid gap-4 lg:grid-cols-[1fr_420px]">
+          <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+            <p class="text-xs font-black uppercase text-cyan-300">${escapeHtml(mission.badge)}</p>
+            <h3 class="mt-1 text-xl font-black text-white">${escapeHtml(mission.title)}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-400">${escapeHtml(mission.goal)}</p>
+            <div class="mt-4 space-y-3">
+              ${mission.steps.map((step, index) => `
+                <div class="rounded-lg border border-slate-800 bg-slate-900 p-3">
+                  <p class="font-black text-white">${index + 1}. ${escapeHtml(step[0])}</p>
+                  <div class="mt-2 grid gap-2 xl:grid-cols-2">
+                    <pre class="overflow-x-auto rounded bg-slate-950 p-2 font-mono text-xs text-slate-200"><code>${highlight(step[1])}</code></pre>
+                    <pre class="overflow-x-auto rounded bg-slate-950 p-2 font-mono text-xs text-slate-200"><code>${highlight(step[2])}</code></pre>
                   </div>
                 </div>
               `).join("")}
             </div>
           </div>
-          <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-            <div class="mb-2 flex items-center justify-between gap-2">
-              <p class="inline-flex items-center gap-2 text-sm font-bold text-slate-950 dark:text-white">
-                <i data-lucide="file-code-2" class="h-4 w-4 text-emerald-500"></i>
-                Script PowerShell
-              </p>
-              <button type="button" class="copy-btn inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300" data-copy="${escapeHtml(active.script)}">
-                <i data-lucide="copy" class="h-4 w-4"></i>
-                Copier
-              </button>
-            </div>
-            <pre class="code-scroll max-h-96 overflow-auto whitespace-pre rounded bg-slate-950 px-3 py-3 font-mono text-xs leading-5 text-slate-100"><code>${highlight(active.script)}</code></pre>
+          <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+            <p class="text-xs font-black uppercase text-emerald-300">Script PowerShell</p>
+            <pre class="mt-3 max-h-[520px] overflow-auto rounded bg-slate-900 p-3 font-mono text-xs leading-5 text-slate-100 scroll-slim"><code>${highlight(scriptForMission(mission))}</code></pre>
           </div>
         </div>
       `;
-
     }
 
-    function renderCards(items) {
-      els.grid.innerHTML = items.map((item) => card(item)).join("");
-    }
-
-    function bindDynamicActions() {
-      document.querySelectorAll(".copy-btn").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          copyToClipboard(button.dataset.copy, button);
-        });
-      });
-      document.querySelectorAll(".generator-input").forEach((input) => {
-        input.addEventListener("input", () => {
-          const cursor = input.selectionStart;
-          state.generatorValues[input.dataset.id] ||= {};
-          state.generatorValues[input.dataset.id][input.dataset.field] = input.value;
-          render();
-          const nextInput = document.querySelector(`.generator-input[data-id="${input.dataset.id}"][data-field="${input.dataset.field}"]`);
-          if (nextInput) {
-            nextInput.focus();
-            nextInput.setSelectionRange(cursor, cursor);
-          }
-        });
-      });
-    }
-
-    function toggleCard(id) {
-      state.openCards = state.openCards.includes(id)
-        ? state.openCards.filter((entry) => entry !== id)
-        : [...state.openCards, id];
-      render();
-      requestAnimationFrame(() => document.getElementById(`card-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
-    }
-
-    function toggleListValue(listName, id) {
-      state[listName] = state[listName].includes(id)
-        ? state[listName].filter((entry) => entry !== id)
-        : [...state[listName], id];
-      render();
-    }
-
-    function selectScenario(id) {
-      if (!id) return;
-      state.activeScenario = id;
-      render();
-    }
-
-    window.lexiqueAction = {
-      filter: setFilterFromButton,
-      suggestion: chooseSuggestion,
-      scenario(button) {
-        selectScenario(button?.dataset.id);
-      },
-      toggle(button, event) {
-        event?.stopPropagation();
-        toggleCard(button?.dataset.id);
-      },
-      card(card, event) {
-        if (event?.target?.closest?.("button, input, a, textarea, select")) return;
-        toggleCard(card?.dataset.id);
-      },
-      generator(button, event) {
-        event?.stopPropagation();
-        toggleListValue("openGenerators", button?.dataset.id);
-      },
-      qr(button, event) {
-        event?.stopPropagation();
-        toggleListValue("openQrCodes", button?.dataset.id);
-      },
-      favorite(button, event) {
-        event?.stopPropagation();
-        const id = button?.dataset.id;
-        if (!id) return;
-        state.favorites = isFavorite(id) ? state.favorites.filter((entry) => entry !== id) : [...state.favorites, id];
-        saveFavorites();
-        render();
+    function renderFavorites() {
+      const items = state.commands.filter((item) => isFavorite(item.id));
+      $("statFavorites").textContent = state.favorites.length;
+      if (!items.length) {
+        els.favoritesList.innerHTML = `<div class="rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">Aucun favori pour l'instant.</div>`;
+        return;
       }
-    };
-
-    function renderQrCodes() {
-      document.querySelectorAll(".qr-code[data-payload]").forEach((container) => {
-        const payload = container.dataset.payload;
-        container.innerHTML = "";
-        if (!window.QRCode) {
-          container.textContent = "QR indisponible";
-          return;
-        }
-        new QRCode(container, {
-          text: payload,
-          width: 128,
-          height: 128,
-          colorDark: "#0f172a",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
-      });
+      els.favoritesList.innerHTML = items.map((item) => `
+        <button class="rounded-xl border border-slate-800 bg-slate-950 p-4 text-left hover:border-amber-300" onclick="window.app.openCommand('${item.id}')">
+          <p class="text-xs font-black uppercase text-amber-300">${escapeHtml(item.category)}</p>
+          <h3 class="mt-1 font-black text-white">${escapeHtml(item.action)}</h3>
+          <p class="mt-2 truncate font-mono text-xs text-slate-400">${escapeHtml(item.powershell)}</p>
+        </button>
+      `).join("");
     }
 
-    async function copyToClipboard(text, button) {
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch {
-        const fallback = document.createElement("textarea");
-        fallback.value = text;
-        fallback.style.position = "fixed";
-        fallback.style.opacity = "0";
-        document.body.appendChild(fallback);
-        fallback.select();
-        document.execCommand("copy");
-        fallback.remove();
-      }
-      if (button) {
-        const original = button.innerHTML;
-        button.classList.add("border-emerald-400", "text-emerald-600", "dark:text-emerald-300");
-        button.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i><span>Copie !</span>`;
-        refreshIcons();
-        setTimeout(() => {
-          button.innerHTML = original;
-          button.classList.remove("border-emerald-400", "text-emerald-600", "dark:text-emerald-300");
-          refreshIcons();
-        }, 2000);
-      } else {
-        showToast("Copie !");
-      }
-    }
-
-    let toastTimer;
-    function showToast(message) {
-      els.toast.textContent = message;
-      els.toast.classList.remove("hidden");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 1300);
-    }
-
-    function renderAssistantPrompts() {
-      const prompts = [
-        "Je veux tester une IP",
-        "Comment lister les processus ?",
-        "Equivalent PowerShell de netstat",
-        "Je dois supprimer un dossier",
-        "Que fait Get-ChildItem ?"
-      ];
-      els.assistantPrompts.innerHTML = prompts.map((prompt) => `<button class="assistant-prompt rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-emerald-500 hover:text-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" type="button">${escapeHtml(prompt)}</button>`).join("");
-      document.querySelectorAll(".assistant-prompt").forEach((button) => {
-        button.addEventListener("click", () => askAssistant(button.textContent));
-      });
-    }
-
-    function addAssistantMessage(role, html) {
-      const align = role === "user" ? "ml-auto bg-sky-600 text-white" : "mr-auto bg-white text-slate-700 dark:bg-slate-900 dark:text-slate-200";
-      els.assistantMessages.insertAdjacentHTML("beforeend", `<div class="max-w-[92%] rounded-md border border-slate-200 px-3 py-2 ${align} dark:border-slate-800">${html}</div>`);
-      els.assistantMessages.scrollTop = els.assistantMessages.scrollHeight;
-    }
-
-    function assistantAnswer(question) {
-      const q = normalize(question);
-      const scored = state.commands.map((item) => {
-        let score = 0;
-        const haystack = allHaystack(item);
-        q.split(/\s+/).filter(Boolean).forEach((word) => {
-          if (haystack.includes(word)) score += 2;
-          if (normalize(item.cmd).includes(word) || normalize(item.powershell).includes(word)) score += 4;
-          if ((item.alias || []).some((alias) => normalize(alias) === word)) score += 5;
-        });
-        if (q.includes("port") && item.id.includes("test-port-tcp")) score += 8;
-        if (q.includes("ip") && item.category === "Reseau") score += 2;
-        if (q.includes("supprim") && item.id.includes("remove-item")) score += 6;
-        return { item, score };
-      }).sort((a, b) => b.score - a.score);
-
-      const best = scored.filter((entry) => entry.score > 0).slice(0, 3);
-      if (!best.length) {
-        return "Je n'ai pas trouve de correspondance nette. Essaie avec un mot-cle comme <code>ping</code>, <code>Get-Process</code>, <code>service</code>, <code>DNS</code> ou <code>supprimer</code>.";
-      }
-
-      const main = best[0].item;
-      state.search = main.action;
-      els.search.value = main.action;
-      setTimeout(() => document.getElementById(`card-${main.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
-
-      return `
-        Je te conseille <strong>${escapeHtml(main.action)}</strong>.<br>
-        CMD : <code>${escapeHtml(main.cmd)}</code><br>
-        PowerShell : <code>${escapeHtml(main.powershell)}</code><br>
-        Equivalence : <strong>${escapeHtml(main.equivalence)}</strong>. ${escapeHtml(main.note)}<br>
-        ${best.length > 1 ? `Autres pistes : ${best.slice(1).map((entry) => escapeHtml(entry.item.action)).join(", ")}.` : ""}
-      `;
-    }
-
-    function askAssistant(question) {
-      const trimmed = question.trim();
-      if (!trimmed) return;
-      addAssistantMessage("user", escapeHtml(trimmed));
-      const answer = assistantAnswer(trimmed);
-      addAssistantMessage("assistant", answer);
-      render();
+    function renderStats() {
+      $("statCommands").textContent = state.commands.length;
+      $("statCategories").textContent = new Set(state.commands.map((item) => item.category)).size;
+      $("statFavorites").textContent = state.favorites.length;
     }
 
     function render() {
+      filterCommands();
+      renderTabs();
       renderFilters();
-      renderAssistantPrompts();
-      renderFieldMode();
-      const items = filteredCommands();
-      if (state.activeIndex >= items.length) state.activeIndex = items.length ? items.length - 1 : -1;
+      renderList();
+      renderDetail();
+      renderMissions();
       renderFavorites();
-      renderCards(items);
-      renderSuggestions();
-
-      els.count.textContent = `${items.length} commande${items.length > 1 ? "s" : ""} affichee${items.length > 1 ? "s" : ""}`;
-      els.empty.classList.toggle("hidden", items.length > 0);
-      els.empty.classList.toggle("flex", items.length === 0);
-      const hasFilters = state.search || state.category !== "Tous" || state.level !== "Tous" || state.view !== "Tous";
-      const hasAnyFilters = hasFilters || state.favoriteOnly;
-      els.reset.classList.toggle("hidden", !hasAnyFilters);
-      els.reset.classList.toggle("inline-flex", Boolean(hasAnyFilters));
-
-      bindDynamicActions();
-      renderQrCodes();
-      refreshIcons();
+      renderStats();
     }
 
-    els.search.addEventListener("input", (event) => {
-      state.search = event.target.value;
-      state.suggestionIndex = -1;
-      state.activeIndex = -1;
-      render();
-    });
-
-    els.search.addEventListener("focus", renderSuggestions);
-    els.search.addEventListener("blur", () => {
-      setTimeout(() => els.suggestions.classList.add("hidden"), 120);
-    });
-
-    window.addEventListener("keydown", (event) => {
-      const tag = document.activeElement?.tagName;
-      const isTyping = ["INPUT", "TEXTAREA"].includes(tag);
-      const items = filteredCommands();
-      const suggestions = suggestionItems();
-      if ((event.key === "/" && !isTyping) || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) {
-        event.preventDefault();
-        els.search.focus();
-        els.search.select();
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
-        event.preventDefault();
-        const activeItem = items[state.activeIndex >= 0 ? state.activeIndex : 0];
-        if (activeItem) {
-          state.favorites = isFavorite(activeItem.id) ? state.favorites.filter((entry) => entry !== activeItem.id) : [...state.favorites, activeItem.id];
-          saveFavorites();
-          render();
-        }
-      }
-      if (event.key === "ArrowDown" && !event.altKey && (document.activeElement === els.search || !isTyping)) {
-        event.preventDefault();
-        if (document.activeElement === els.search && suggestions.length) {
-          state.suggestionIndex = Math.min(state.suggestionIndex + 1, suggestions.length - 1);
-          renderSuggestions();
-        } else if (items.length) {
-          state.activeIndex = Math.min(state.activeIndex + 1, items.length - 1);
-          render();
-          document.getElementById(`card-${items[state.activeIndex].id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
-      if (event.key === "ArrowUp" && !event.altKey && (document.activeElement === els.search || !isTyping)) {
-        event.preventDefault();
-        if (document.activeElement === els.search && suggestions.length) {
-          state.suggestionIndex = Math.max(state.suggestionIndex - 1, 0);
-          renderSuggestions();
-        } else if (items.length) {
-          state.activeIndex = Math.max(state.activeIndex - 1, 0);
-          render();
-          document.getElementById(`card-${items[state.activeIndex].id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
-      if (event.key === "Enter" && document.activeElement === els.search && state.suggestionIndex >= 0 && suggestions[state.suggestionIndex]) {
-        event.preventDefault();
-        state.search = suggestions[state.suggestionIndex].term;
-        els.search.value = state.search;
-        state.suggestionIndex = -1;
-        render();
-      }
-      if (event.key === "Escape") {
-        event.preventDefault();
-        resetFilters();
-        els.search.blur();
-      }
-    });
-
-    function resetFilters() {
-      state.search = "";
-      state.category = "Tous";
-      state.level = "Tous";
-      state.view = "Tous";
-      state.favoriteOnly = false;
-      els.search.value = "";
-      render();
+    function showToast(message = "Copie !") {
+      els.toast.textContent = message;
+      els.toast.classList.remove("hidden");
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => els.toast.classList.add("hidden"), 1200);
     }
 
-    els.reset.addEventListener("click", resetFilters);
-
-    els.themeToggle.addEventListener("click", () => {
-      state.theme = state.theme === "dark" ? "light" : "dark";
-      applyTheme();
-    });
-
-    els.exportData.addEventListener("click", () => {
-      const blob = new Blob([JSON.stringify(filteredCommands(), null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "lexique-cmd-powershell-commandes.json";
-      link.click();
-      URL.revokeObjectURL(url);
-    });
-
-    els.installApp.addEventListener("click", async () => {
-      if (!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      els.installApp.classList.add("hidden");
-      els.installApp.classList.remove("inline-flex");
-    });
-
-    els.copyScenario.addEventListener("click", () => {
-      copyToClipboard(activePlaybook().script, els.copyScenario);
-    });
-
-    els.assistantToggle.addEventListener("click", () => {
-      els.assistantPanel.classList.toggle("hidden");
-      if (!els.assistantPanel.classList.contains("hidden") && !els.assistantMessages.children.length) {
-        addAssistantMessage("assistant", "Dis-moi ce que tu veux faire en langage naturel, ou colle une commande CMD/PowerShell. Je chercherai l'equivalent le plus pertinent dans le lexique.");
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
       }
-    });
+      showToast();
+    }
 
-    els.assistantForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      askAssistant(els.assistantInput.value);
-      els.assistantInput.value = "";
-    });
-
-    els.clearFavorites.addEventListener("click", () => {
-      state.favorites = [];
-      saveFavorites();
-      render();
-    });
-
-    async function clearOldAppCaches() {
-      const currentVersion = "v4.3-inline-actions";
-      if (localStorage.getItem("cmdPsAppVersion") === currentVersion) return;
+    async function clearOldCaches() {
+      localStorage.setItem("cmdPsAppVersion", "v5-dashboard");
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((reg) => reg.unregister()));
+      }
       if ("caches" in window) {
         const keys = await caches.keys();
         await Promise.all(keys.filter((key) => key.startsWith("lexique-cmd-powershell-")).map((key) => caches.delete(key)));
       }
-      localStorage.setItem("cmdPsAppVersion", currentVersion);
     }
 
-    applyTheme();
-    window.addEventListener("beforeinstallprompt", (event) => {
-      event.preventDefault();
-      deferredInstallPrompt = event;
-      els.installApp.classList.remove("hidden");
-      els.installApp.classList.add("inline-flex");
+    window.app = {
+      setTab(tab) {
+        state.tab = tab;
+        render();
+      },
+      setSearch(value) {
+        state.query = value;
+        render();
+      },
+      setCategory(category) {
+        state.category = category;
+        render();
+      },
+      setLevel(level) {
+        state.level = level;
+        render();
+      },
+      resetFilters() {
+        state.query = "";
+        state.category = "Tous";
+        state.level = "Tous";
+        els.search.value = "";
+        render();
+      },
+      selectCommand(id) {
+        state.selectedId = id;
+        render();
+      },
+      openCommand(id) {
+        state.selectedId = id;
+        state.tab = "explorer";
+        render();
+      },
+      toggleFavorite(id) {
+        state.favorites = isFavorite(id) ? state.favorites.filter((entry) => entry !== id) : [...state.favorites, id];
+        saveFavorites();
+        render();
+      },
+      clearFavorites() {
+        state.favorites = [];
+        saveFavorites();
+        render();
+      },
+      setMission(id) {
+        state.missionId = id;
+        render();
+      },
+      copyMission() {
+        copyText(scriptForMission(currentMission()));
+      },
+      copyText,
+      askAssistant(event) {
+        event.preventDefault();
+        const query = els.assistantInput.value.trim();
+        if (!query) return;
+        const q = normalize(query);
+        const scored = state.commands.map((item) => {
+          const haystack = normalize(commandText(item));
+          let score = 0;
+          q.split(/\s+/).forEach((word) => {
+            if (haystack.includes(word)) score += 2;
+            if (normalize(item.cmd).includes(word) || normalize(item.powershell).includes(word)) score += 5;
+          });
+          return { item, score };
+        }).filter((entry) => entry.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
+        if (!scored.length) {
+          els.assistantAnswer.innerHTML = `Je n'ai pas trouve de resultat net. Essaie avec <code class="rounded bg-slate-800 px-1">reseau</code>, <code class="rounded bg-slate-800 px-1">utilisateur</code>, <code class="rounded bg-slate-800 px-1">processus</code> ou <code class="rounded bg-slate-800 px-1">DNS</code>.`;
+          return;
+        }
+        const best = scored[0].item;
+        els.assistantAnswer.innerHTML = `
+          <p class="font-black text-white">Meilleur choix : ${escapeHtml(best.action)}</p>
+          <p class="mt-2">CMD : <code class="rounded bg-slate-800 px-1.5 py-0.5">${escapeHtml(best.cmd)}</code></p>
+          <p class="mt-1">PowerShell : <code class="rounded bg-slate-800 px-1.5 py-0.5">${escapeHtml(best.powershell)}</code></p>
+          <button class="mt-3 rounded-lg bg-emerald-300 px-3 py-2 text-sm font-black text-slate-950" onclick="window.app.openCommand('${best.id}')">Ouvrir la fiche</button>
+        `;
+      },
+      toggleTheme() {
+        state.theme = state.theme === "dark" ? "light" : "dark";
+        document.documentElement.classList.toggle("dark", state.theme === "dark");
+        document.body.classList.toggle("bg-slate-100", state.theme !== "dark");
+        document.body.classList.toggle("text-slate-900", state.theme !== "dark");
+        localStorage.setItem("cmdPsTheme", state.theme);
+      }
+    };
+
+    window.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        els.search.focus();
+        els.search.select();
+      }
+      if (event.key === "Escape") {
+        window.app.resetFilters();
+      }
     });
 
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js").catch((error) => console.warn("Service worker non enregistre", error));
-      });
+    async function init() {
+      await clearOldCaches().catch(() => {});
+      try {
+        const response = await fetch("commandes.json?version=v5-dashboard", { cache: "no-store" });
+        state.commands = await response.json();
+        state.selectedId = state.commands[0]?.id || "";
+        render();
+      } catch (error) {
+        $("resultCount").textContent = "Erreur de chargement";
+        els.commandDetail.innerHTML = `<div class="rounded-lg border border-red-400/30 bg-red-500/10 p-4 text-red-100">Impossible de charger commandes.json. Recharge la page.</div>`;
+      }
     }
 
-    clearOldAppCaches().finally(() => loadCommands().then(render));
+    init();
   </script>
 </body>
 </html>
