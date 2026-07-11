@@ -75,6 +75,14 @@ Voir :
 android/README_ANDROID.md
 ```
 
+APK debug directement installable :
+
+```text
+lexique-cmd-powershell.apk
+```
+
+Sur Android, il faudra peut-etre autoriser l'installation depuis le navigateur ou le gestionnaire de fichiers. Cet APK est signe avec la cle debug Android, donc il est fait pour ton usage personnel et les tests, pas pour une publication Play Store.
+
 ## Deploiement GitHub Pages
 
 1. Copier `index.html`, `commandes.json`, `manifest.webmanifest`, `service-worker.js`, `icon.svg`, `README.md`, `CONTRIBUTING.md` et `android/` a la racine du depot GitHub.

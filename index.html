@@ -220,6 +220,7 @@
       generatorValues: {},
       openGenerators: [],
       openQrCodes: [],
+      openCards: [],
       activeScenario: "reseau-panne-internet"
     };
 
@@ -696,11 +697,12 @@
       const meta = categoryMeta[item.category] || categoryMeta["Tous"];
       const cmd = applyTemplate(item.cmdTemplate || item.cmd, item);
       const ps = applyTemplate(item.psTemplate || item.powershell, item);
+      const isOpen = compact || state.openCards.includes(item.id);
       const eqClasses = item.equivalence === "Parfaite"
         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200"
         : "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200";
       return `
-        <article id="card-${item.id}" data-id="${item.id}" tabindex="-1" class="command-card flex h-full flex-col rounded-lg border ${state.activeIndex >= 0 && filteredCommands()[state.activeIndex]?.id === item.id ? "border-sky-500 ring-4 ring-sky-500/15" : "border-slate-200 dark:border-slate-800"} bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:bg-slate-900">
+        <article id="card-${item.id}" data-id="${item.id}" tabindex="-1" class="command-card flex h-full cursor-pointer flex-col rounded-lg border ${state.activeIndex >= 0 && filteredCommands()[state.activeIndex]?.id === item.id ? "border-sky-500 ring-4 ring-sky-500/15" : "border-slate-200 dark:border-slate-800"} bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:bg-slate-900">
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex flex-wrap gap-2">
               <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${meta.badge}">
@@ -716,21 +718,35 @@
           </div>
           <h2 class="text-lg font-bold leading-snug text-slate-950 dark:text-white">${escapeHtml(item.action)}</h2>
           <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">${escapeHtml(item.description)}</p>
-          <div class="mt-4 grid gap-3">
-            ${commandBlock(item, "CMD", cmd, "text-sky-700 dark:text-sky-300")}
-            ${commandBlock(item, "PowerShell", ps, "text-emerald-700 dark:text-emerald-300")}
+          <div class="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+            <div class="flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="truncate font-mono text-xs text-slate-600 dark:text-slate-300">${escapeHtml(cmd)}</p>
+                <p class="mt-1 truncate font-mono text-xs text-emerald-700 dark:text-emerald-300">${escapeHtml(ps)}</p>
+              </div>
+              <button type="button" class="card-toggle inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}">
+                <i data-lucide="${isOpen ? "chevron-up" : "chevron-down"}" class="h-4 w-4"></i>
+                ${isOpen ? "Masquer" : "Voir"}
+              </button>
+            </div>
           </div>
-          ${compact ? "" : generator(item)}
-          ${compact ? "" : qrPanel(item, cmd, ps)}
-          <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-            ${item.adminRequired || item.category === "Utilisateurs" ? `<p class="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-4 w-4"></i>Requiert des droits Administrateur</p>` : ""}
-            <p class="flex flex-wrap gap-2 text-slate-600 dark:text-slate-400">
-              <span class="font-semibold text-slate-800 dark:text-slate-200">Alias PowerShell :</span>
-              <span>${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</span>
-            </p>
-            ${examples(item)}
-            <p class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">${escapeHtml(item.note)}</p>
-          </div>
+          ${isOpen ? `
+            <div class="mt-4 grid gap-3">
+              ${commandBlock(item, "CMD", cmd, "text-sky-700 dark:text-sky-300")}
+              ${commandBlock(item, "PowerShell", ps, "text-emerald-700 dark:text-emerald-300")}
+            </div>
+            ${compact ? "" : generator(item)}
+            ${compact ? "" : qrPanel(item, cmd, ps)}
+            <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
+              ${item.adminRequired || item.category === "Utilisateurs" ? `<p class="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-4 w-4"></i>Requiert des droits Administrateur</p>` : ""}
+              <p class="flex flex-wrap gap-2 text-slate-600 dark:text-slate-400">
+                <span class="font-semibold text-slate-800 dark:text-slate-200">Alias PowerShell :</span>
+                <span>${item.alias?.length ? item.alias.map((alias) => `<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-800 dark:bg-slate-800 dark:text-slate-100">${escapeHtml(alias)}</code>`).join(" ") : "Aucun alias courant"}</span>
+              </p>
+              ${examples(item)}
+              <p class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">${escapeHtml(item.note)}</p>
+            </div>
+          ` : ""}
         </article>
       `;
     }
@@ -817,10 +833,26 @@
 
     function bindDynamicActions() {
       document.querySelectorAll(".copy-btn").forEach((button) => {
-        button.addEventListener("click", () => copyToClipboard(button.dataset.copy, button));
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          copyToClipboard(button.dataset.copy, button);
+        });
+      });
+      document.querySelectorAll(".card-toggle").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          toggleCard(button.dataset.id);
+        });
+      });
+      document.querySelectorAll(".command-card").forEach((card) => {
+        card.addEventListener("click", (event) => {
+          if (event.target.closest("button, input, a, textarea, select")) return;
+          toggleCard(card.dataset.id);
+        });
       });
       document.querySelectorAll(".generator-toggle").forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
           const id = button.dataset.id;
           state.openGenerators = state.openGenerators.includes(id)
             ? state.openGenerators.filter((entry) => entry !== id)
@@ -829,7 +861,8 @@
         });
       });
       document.querySelectorAll(".qr-toggle").forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
           const id = button.dataset.id;
           state.openQrCodes = state.openQrCodes.includes(id)
             ? state.openQrCodes.filter((entry) => entry !== id)
@@ -838,7 +871,8 @@
         });
       });
       document.querySelectorAll(".favorite-btn").forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
           const id = button.dataset.id;
           state.favorites = isFavorite(id) ? state.favorites.filter((entry) => entry !== id) : [...state.favorites, id];
           saveFavorites();
@@ -858,6 +892,14 @@
           }
         });
       });
+    }
+
+    function toggleCard(id) {
+      state.openCards = state.openCards.includes(id)
+        ? state.openCards.filter((entry) => entry !== id)
+        : [...state.openCards, id];
+      render();
+      requestAnimationFrame(() => document.getElementById(`card-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
     }
 
     function renderQrCodes() {

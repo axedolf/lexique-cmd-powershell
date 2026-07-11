@@ -25,6 +25,14 @@ L'APK sera genere dans :
 android/app/build/outputs/apk/debug/
 ```
 
+Un APK debug deja genere est aussi fourni a la racine du projet :
+
+```text
+lexique-cmd-powershell.apk
+```
+
+Il est signe avec la cle debug Android. Android peut afficher un avertissement a l'installation parce que l'application ne vient pas du Play Store.
+
 ## Notes
 
 - L'application charge `https://axedolf.github.io/lexique-cmd-powershell/`.
