@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#020617" />
-  <meta name="app-version" content="v4.2-clickfix" />
+  <meta name="app-version" content="v4.3-inline-actions" />
   <title>Lexique CMD / PowerShell</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -493,7 +493,7 @@
 
     function pillButton(label, active, icon, kind, value) {
       return `
-        <button type="button" data-kind="${kind}" data-value="${escapeHtml(label)}" class="filter-btn inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-semibold transition ${
+        <button type="button" data-kind="${kind}" data-value="${escapeHtml(label)}" onclick="window.lexiqueAction?.filter(this)" class="filter-btn inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-semibold transition ${
           active
             ? "border-sky-500 bg-sky-500 text-white shadow-sm"
             : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -516,16 +516,16 @@
         ...usages.map((usage) => pillButton(usage, state.view === usage, "tag", "view"))
       ].join("");
 
-      document.querySelectorAll(".filter-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-          if (button.dataset.kind === "favoriteOnly") {
-            state.favoriteOnly = !state.favoriteOnly;
-          } else {
-            state[button.dataset.kind] = button.dataset.value;
-          }
-          render();
-        });
-      });
+    }
+
+    function setFilterFromButton(button) {
+      if (!button) return;
+      if (button.dataset.kind === "favoriteOnly") {
+        state.favoriteOnly = !state.favoriteOnly;
+      } else {
+        state[button.dataset.kind] = button.dataset.value;
+      }
+      render();
     }
 
     function suggestionItems() {
@@ -570,7 +570,7 @@
       const items = suggestionItems();
       els.suggestions.classList.toggle("hidden", items.length === 0 || document.activeElement !== els.search);
       els.suggestions.innerHTML = items.map((entry, index) => `
-        <button type="button" class="suggestion-btn flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition ${index === state.suggestionIndex ? "bg-sky-100 text-sky-800 dark:bg-sky-400/15 dark:text-sky-200" : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"}" data-term="${escapeHtml(entry.term)}" role="option">
+        <button type="button" class="suggestion-btn flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition ${index === state.suggestionIndex ? "bg-sky-100 text-sky-800 dark:bg-sky-400/15 dark:text-sky-200" : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"}" data-term="${escapeHtml(entry.term)}" onclick="window.lexiqueAction?.suggestion(this)" role="option">
           <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
           <span class="truncate">${escapeHtml(entry.term)}</span>
         </button>
@@ -579,12 +579,17 @@
       document.querySelectorAll(".suggestion-btn").forEach((button) => {
         button.addEventListener("mousedown", (event) => {
           event.preventDefault();
-          state.search = button.dataset.term;
-          els.search.value = state.search;
-          state.suggestionIndex = -1;
-          render();
+          chooseSuggestion(button);
         });
       });
+    }
+
+    function chooseSuggestion(button) {
+      if (!button?.dataset.term) return;
+      state.search = button.dataset.term;
+      els.search.value = state.search;
+      state.suggestionIndex = -1;
+      render();
     }
 
     function isFavorite(id) {
@@ -636,7 +641,7 @@
       const isOpen = state.openGenerators.includes(item.id);
       return `
         <div class="mt-4">
-          <button type="button" class="generator-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}">
+          <button type="button" class="generator-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}" onclick="window.lexiqueAction?.generator(this, event)">
             <i data-lucide="wand-sparkles" class="h-4 w-4"></i>
             ${isOpen ? "Masquer" : "Parametrer"}
           </button>
@@ -677,7 +682,7 @@
       const payload = qrPayload(item, cmd, ps);
       return `
         <div class="mt-3">
-          <button type="button" class="qr-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}">
+          <button type="button" class="qr-toggle inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}" onclick="window.lexiqueAction?.qr(this, event)">
             <i data-lucide="qr-code" class="h-4 w-4"></i>
             ${isOpen ? "Masquer QR" : "QR code"}
           </button>
@@ -709,7 +714,7 @@
         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200"
         : "bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-200";
       return `
-        <article id="card-${item.id}" data-id="${item.id}" tabindex="-1" class="command-card flex h-full cursor-pointer flex-col rounded-lg border ${state.activeIndex >= 0 && filteredCommands()[state.activeIndex]?.id === item.id ? "border-sky-500 ring-4 ring-sky-500/15" : "border-slate-200 dark:border-slate-800"} bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:bg-slate-900">
+        <article id="card-${item.id}" data-id="${item.id}" tabindex="-1" onclick="window.lexiqueAction?.card(this, event)" class="command-card flex h-full cursor-pointer flex-col rounded-lg border ${state.activeIndex >= 0 && filteredCommands()[state.activeIndex]?.id === item.id ? "border-sky-500 ring-4 ring-sky-500/15" : "border-slate-200 dark:border-slate-800"} bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-glow dark:bg-slate-900">
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex flex-wrap gap-2">
               <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${meta.badge}">
@@ -719,7 +724,7 @@
               <span class="rounded-full px-2.5 py-1 text-xs font-bold ${eqClasses}">${escapeHtml(item.equivalence)}</span>
               ${item.adminRequired || item.category === "Utilisateurs" ? `<span class="inline-flex items-center gap-1 rounded-full border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-800 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-200"><i data-lucide="triangle-alert" class="h-3.5 w-3.5"></i>Admin requis</span>` : ""}
             </div>
-            <button type="button" class="favorite-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-500 transition hover:text-amber-500 dark:border-slate-700 dark:bg-slate-900 ${isFavorite(item.id) ? "text-amber-500" : ""}" data-id="${item.id}" aria-label="Favori">
+            <button type="button" class="favorite-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-500 transition hover:text-amber-500 dark:border-slate-700 dark:bg-slate-900 ${isFavorite(item.id) ? "text-amber-500" : ""}" data-id="${item.id}" onclick="window.lexiqueAction?.favorite(this, event)" aria-label="Favori">
               <i data-lucide="star" class="h-5 w-5 ${isFavorite(item.id) ? "fill-current" : ""}"></i>
             </button>
           </div>
@@ -731,7 +736,7 @@
                 <p class="truncate font-mono text-xs text-slate-600 dark:text-slate-300">${escapeHtml(cmd)}</p>
                 <p class="mt-1 truncate font-mono text-xs text-emerald-700 dark:text-emerald-300">${escapeHtml(ps)}</p>
               </div>
-              <button type="button" class="card-toggle inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}">
+              <button type="button" class="card-toggle inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-id="${item.id}" onclick="window.lexiqueAction?.toggle(this, event)">
                 <i data-lucide="${isOpen ? "chevron-up" : "chevron-down"}" class="h-4 w-4"></i>
                 ${isOpen ? "Masquer" : "Voir"}
               </button>
@@ -775,7 +780,7 @@
           playbook.id === active.id
             ? "border-sky-500 bg-sky-500 text-white"
             : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-        }" data-id="${playbook.id}">
+        }" data-id="${playbook.id}" onclick="window.lexiqueAction?.scenario(this)">
           <i data-lucide="${playbook.icon}" class="h-4 w-4"></i>
           ${escapeHtml(playbook.title)}
         </button>
@@ -826,12 +831,6 @@
         </div>
       `;
 
-      document.querySelectorAll(".scenario-tab").forEach((button) => {
-        button.addEventListener("click", () => {
-          state.activeScenario = button.dataset.id;
-          render();
-        });
-      });
     }
 
     function renderCards(items) {
@@ -843,47 +842,6 @@
         button.addEventListener("click", (event) => {
           event.stopPropagation();
           copyToClipboard(button.dataset.copy, button);
-        });
-      });
-      document.querySelectorAll(".card-toggle").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          toggleCard(button.dataset.id);
-        });
-      });
-      document.querySelectorAll(".command-card").forEach((card) => {
-        card.addEventListener("click", (event) => {
-          if (event.target.closest("button, input, a, textarea, select")) return;
-          toggleCard(card.dataset.id);
-        });
-      });
-      document.querySelectorAll(".generator-toggle").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const id = button.dataset.id;
-          state.openGenerators = state.openGenerators.includes(id)
-            ? state.openGenerators.filter((entry) => entry !== id)
-            : [...state.openGenerators, id];
-          render();
-        });
-      });
-      document.querySelectorAll(".qr-toggle").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const id = button.dataset.id;
-          state.openQrCodes = state.openQrCodes.includes(id)
-            ? state.openQrCodes.filter((entry) => entry !== id)
-            : [...state.openQrCodes, id];
-          render();
-        });
-      });
-      document.querySelectorAll(".favorite-btn").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const id = button.dataset.id;
-          state.favorites = isFavorite(id) ? state.favorites.filter((entry) => entry !== id) : [...state.favorites, id];
-          saveFavorites();
-          render();
         });
       });
       document.querySelectorAll(".generator-input").forEach((input) => {
@@ -908,6 +866,51 @@
       render();
       requestAnimationFrame(() => document.getElementById(`card-${id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
     }
+
+    function toggleListValue(listName, id) {
+      state[listName] = state[listName].includes(id)
+        ? state[listName].filter((entry) => entry !== id)
+        : [...state[listName], id];
+      render();
+    }
+
+    function selectScenario(id) {
+      if (!id) return;
+      state.activeScenario = id;
+      render();
+    }
+
+    window.lexiqueAction = {
+      filter: setFilterFromButton,
+      suggestion: chooseSuggestion,
+      scenario(button) {
+        selectScenario(button?.dataset.id);
+      },
+      toggle(button, event) {
+        event?.stopPropagation();
+        toggleCard(button?.dataset.id);
+      },
+      card(card, event) {
+        if (event?.target?.closest?.("button, input, a, textarea, select")) return;
+        toggleCard(card?.dataset.id);
+      },
+      generator(button, event) {
+        event?.stopPropagation();
+        toggleListValue("openGenerators", button?.dataset.id);
+      },
+      qr(button, event) {
+        event?.stopPropagation();
+        toggleListValue("openQrCodes", button?.dataset.id);
+      },
+      favorite(button, event) {
+        event?.stopPropagation();
+        const id = button?.dataset.id;
+        if (!id) return;
+        state.favorites = isFavorite(id) ? state.favorites.filter((entry) => entry !== id) : [...state.favorites, id];
+        saveFavorites();
+        render();
+      }
+    };
 
     function renderQrCodes() {
       document.querySelectorAll(".qr-code[data-payload]").forEach((container) => {
@@ -1178,7 +1181,7 @@
     });
 
     async function clearOldAppCaches() {
-      const currentVersion = "v4.2-clickfix";
+      const currentVersion = "v4.3-inline-actions";
       if (localStorage.getItem("cmdPsAppVersion") === currentVersion) return;
       if ("caches" in window) {
         const keys = await caches.keys();

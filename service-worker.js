@@ -1,4 +1,4 @@
-const CACHE_NAME = "lexique-cmd-powershell-v4-2-clickfix";
+const CACHE_NAME = "lexique-cmd-powershell-v4-3-inline-actions";
 const CORE_ASSETS = [
   "./",
   "./index.html",
