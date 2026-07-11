@@ -15,7 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://axedolf.github.io/lexique-cmd-powershell/";
+    private static final String APP_URL = "https://axedolf.github.io/lexique-cmd-powershell/?app=android-v4-2-clickfix";
     private WebView webView;
 
     @Override
@@ -28,13 +28,14 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(2, 6, 23));
+        webView.clearCache(true);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
 

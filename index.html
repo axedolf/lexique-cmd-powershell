@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#020617" />
+  <meta name="app-version" content="v4.2-clickfix" />
   <title>Lexique CMD / PowerShell</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -388,13 +389,19 @@
       }).join("");
     }
 
+    function refreshIcons() {
+      if (window.lucide?.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
     function applyTheme() {
       const isDark = state.theme === "dark";
       document.documentElement.classList.toggle("dark", isDark);
       els.themeIcon.setAttribute("data-lucide", isDark ? "moon" : "sun");
       els.themeLabel.textContent = isDark ? "Sombre" : "Clair";
       localStorage.setItem("cmdPsTheme", state.theme);
-      lucide.createIcons();
+      refreshIcons();
     }
 
     async function loadCommands() {
@@ -938,11 +945,11 @@
         const original = button.innerHTML;
         button.classList.add("border-emerald-400", "text-emerald-600", "dark:text-emerald-300");
         button.innerHTML = `<i data-lucide="check" class="h-4 w-4"></i><span>Copie !</span>`;
-        lucide.createIcons();
+        refreshIcons();
         setTimeout(() => {
           button.innerHTML = original;
           button.classList.remove("border-emerald-400", "text-emerald-600", "dark:text-emerald-300");
-          lucide.createIcons();
+          refreshIcons();
         }, 2000);
       } else {
         showToast("Copie !");
@@ -1041,7 +1048,7 @@
 
       bindDynamicActions();
       renderQrCodes();
-      lucide.createIcons();
+      refreshIcons();
     }
 
     els.search.addEventListener("input", (event) => {
@@ -1170,6 +1177,16 @@
       render();
     });
 
+    async function clearOldAppCaches() {
+      const currentVersion = "v4.2-clickfix";
+      if (localStorage.getItem("cmdPsAppVersion") === currentVersion) return;
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter((key) => key.startsWith("lexique-cmd-powershell-")).map((key) => caches.delete(key)));
+      }
+      localStorage.setItem("cmdPsAppVersion", currentVersion);
+    }
+
     applyTheme();
     window.addEventListener("beforeinstallprompt", (event) => {
       event.preventDefault();
@@ -1184,7 +1201,7 @@
       });
     }
 
-    loadCommands().then(render);
+    clearOldAppCaches().finally(() => loadCommands().then(render));
   </script>
 </body>
 </html>
