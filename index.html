@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#020617" />
   <title>Lexique CMD / PowerShell</title>
+  <link rel="manifest" href="manifest.webmanifest" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -63,6 +65,10 @@
           <i data-lucide="download" class="h-5 w-5"></i>
           Export JSON
         </button>
+        <button id="installApp" type="button" class="hidden h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+          <i data-lucide="smartphone" class="h-5 w-5"></i>
+          Installer
+        </button>
         <button id="assistantToggle" type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500">
           <i data-lucide="sparkles" class="h-5 w-5"></i>
           Assistant
@@ -114,6 +120,27 @@
           </p>
         </div>
       </div>
+    </section>
+
+    <section id="fieldMode" class="mt-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="inline-flex items-center gap-2 text-xs font-bold uppercase text-sky-600 dark:text-sky-300">
+            <i data-lucide="clipboard-list" class="h-4 w-4"></i>
+            Scenarios terrain
+          </p>
+          <h2 class="mt-1 text-xl font-bold text-slate-950 dark:text-white">Playbooks d'intervention prets a copier</h2>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
+            Choisis un probleme courant, suis les etapes dans l'ordre, puis copie le script PowerShell complet si tu veux aller vite.
+          </p>
+        </div>
+        <button id="copyScenario" type="button" class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-sky-600 px-3 text-sm font-bold text-white transition hover:bg-sky-500">
+          <i data-lucide="copy" class="h-4 w-4"></i>
+          Copier le script
+        </button>
+      </div>
+      <div id="scenarioTabs" class="mt-4 flex gap-2 overflow-x-auto pb-1"></div>
+      <div id="scenarioDetails" class="mt-4"></div>
     </section>
 
     <section id="favoritesBand" class="hidden py-4">
@@ -192,8 +219,11 @@
       theme: localStorage.getItem("cmdPsTheme") || (window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark"),
       generatorValues: {},
       openGenerators: [],
-      openQrCodes: []
+      openQrCodes: [],
+      activeScenario: "reseau-panne-internet"
     };
+
+    let deferredInstallPrompt = null;
 
     const els = {
       grid: document.getElementById("commandGrid"),
@@ -207,6 +237,7 @@
       reset: document.getElementById("resetFilters"),
       toast: document.getElementById("toast"),
       exportData: document.getElementById("exportData"),
+      installApp: document.getElementById("installApp"),
       themeToggle: document.getElementById("themeToggle"),
       themeIcon: document.getElementById("themeIcon"),
       themeLabel: document.getElementById("themeLabel"),
@@ -218,8 +249,95 @@
       assistantPrompts: document.getElementById("assistantPrompts"),
       favoritesBand: document.getElementById("favoritesBand"),
       favoritesList: document.getElementById("favoritesList"),
-      clearFavorites: document.getElementById("clearFavorites")
+      clearFavorites: document.getElementById("clearFavorites"),
+      scenarioTabs: document.getElementById("scenarioTabs"),
+      scenarioDetails: document.getElementById("scenarioDetails"),
+      copyScenario: document.getElementById("copyScenario")
     };
+
+    const fieldPlaybooks = [
+      {
+        id: "reseau-panne-internet",
+        title: "PC sans Internet",
+        icon: "wifi-off",
+        risk: "Lecture seule",
+        objective: "Identifier rapidement si la panne vient de la pile IP, du DNS, de la passerelle ou d'un service reseau.",
+        steps: [
+          { label: "Configuration IP", cmd: "ipconfig /all", ps: "Get-NetIPConfiguration" },
+          { label: "Ping passerelle", cmd: "ping <passerelle>", ps: "Test-Connection -TargetName <passerelle> -Count 4" },
+          { label: "Resolution DNS", cmd: "nslookup google.fr", ps: "Resolve-DnsName -Name google.fr" },
+          { label: "Test port web", cmd: "powershell -Command Test-NetConnection google.fr -Port 443", ps: "Test-NetConnection -ComputerName google.fr -Port 443" },
+          { label: "Route reseau", cmd: "tracert google.fr", ps: "Test-NetConnection -ComputerName google.fr -TraceRoute" }
+        ],
+        script: [
+          "Get-NetIPConfiguration",
+          "Test-Connection -TargetName 8.8.8.8 -Count 4",
+          "Resolve-DnsName -Name google.fr",
+          "Test-NetConnection -ComputerName google.fr -Port 443",
+          "Test-NetConnection -ComputerName google.fr -TraceRoute"
+        ].join("\n")
+      },
+      {
+        id: "ad-utilisateur-bloque",
+        title: "Utilisateur AD bloque",
+        icon: "user-lock",
+        risk: "Module RSAT requis",
+        objective: "Controler l'etat d'un compte Active Directory, ses groupes et les signaux de verrouillage.",
+        steps: [
+          { label: "Informations compte", cmd: "net user <username> /domain", ps: "Get-ADUser -Identity <username> -Properties LockedOut,Enabled,LastLogonDate,PasswordLastSet" },
+          { label: "Groupes", cmd: "net user <username> /domain", ps: "Get-ADPrincipalGroupMembership -Identity <username> | Select-Object Name" },
+          { label: "Comptes verrouilles", cmd: "N/A", ps: "Search-ADAccount -LockedOut -UsersOnly" },
+          { label: "Deverrouiller", cmd: "N/A", ps: "Unlock-ADAccount -Identity <username>" }
+        ],
+        script: [
+          "$User = \"hugo\"",
+          "Get-ADUser -Identity $User -Properties LockedOut,Enabled,LastLogonDate,PasswordLastSet",
+          "Get-ADPrincipalGroupMembership -Identity $User | Select-Object Name",
+          "Search-ADAccount -LockedOut -UsersOnly"
+        ].join("\n")
+      },
+      {
+        id: "service-ne-demarre-pas",
+        title: "Service ne demarre pas",
+        icon: "settings-2",
+        risk: "Admin parfois requis",
+        objective: "Verifier l'etat du service, les dependances, le processus associe et les erreurs systeme recentes.",
+        steps: [
+          { label: "Etat service", cmd: "sc query <service>", ps: "Get-Service -Name <service>" },
+          { label: "Dependances", cmd: "sc qc <service>", ps: "Get-Service -Name <service> -DependentServices" },
+          { label: "Dernieres erreurs", cmd: "wevtutil qe System /c:20 /f:text", ps: "Get-WinEvent -LogName System -MaxEvents 20 | Where-Object LevelDisplayName -eq 'Error'" },
+          { label: "Redemarrage", cmd: "net stop <service> && net start <service>", ps: "Restart-Service -Name <service> -Force" }
+        ],
+        script: [
+          "$Service = \"Spooler\"",
+          "Get-Service -Name $Service",
+          "Get-Service -Name $Service -DependentServices",
+          "Get-WinEvent -LogName System -MaxEvents 20 | Where-Object LevelDisplayName -eq 'Error'",
+          "# Restart-Service -Name $Service -Force"
+        ].join("\n")
+      },
+      {
+        id: "audit-poste-windows",
+        title: "Audit poste Windows",
+        icon: "shield-check",
+        risk: "Lecture seule",
+        objective: "Sortir une vue rapide systeme, reseau, disques, processus et correctifs installes.",
+        steps: [
+          { label: "Infos machine", cmd: "systeminfo", ps: "Get-ComputerInfo" },
+          { label: "IP", cmd: "ipconfig /all", ps: "Get-NetIPConfiguration" },
+          { label: "Disques", cmd: "wmic logicaldisk get size,freespace,caption", ps: "Get-Volume" },
+          { label: "Processus lourds", cmd: "tasklist", ps: "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10" },
+          { label: "Correctifs", cmd: "wmic qfe list", ps: "Get-HotFix | Sort-Object InstalledOn -Descending" }
+        ],
+        script: [
+          "Get-ComputerInfo | Select-Object CsName,WindowsProductName,WindowsVersion,OsArchitecture",
+          "Get-NetIPConfiguration",
+          "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size",
+          "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name,CPU,Id",
+          "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10"
+        ].join("\n")
+      }
+    ];
 
     function normalize(value) {
       return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -623,6 +741,76 @@
       els.favoritesList.innerHTML = items.map((item) => card(item, true)).join("");
     }
 
+    function activePlaybook() {
+      return fieldPlaybooks.find((playbook) => playbook.id === state.activeScenario) || fieldPlaybooks[0];
+    }
+
+    function renderFieldMode() {
+      const active = activePlaybook();
+      els.scenarioTabs.innerHTML = fieldPlaybooks.map((playbook) => `
+        <button type="button" class="scenario-tab inline-flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-bold transition ${
+          playbook.id === active.id
+            ? "border-sky-500 bg-sky-500 text-white"
+            : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        }" data-id="${playbook.id}">
+          <i data-lucide="${playbook.icon}" class="h-4 w-4"></i>
+          ${escapeHtml(playbook.title)}
+        </button>
+      `).join("");
+
+      els.scenarioDetails.innerHTML = `
+        <div class="grid gap-4 xl:grid-cols-[1fr_420px]">
+          <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="text-base font-bold text-slate-950 dark:text-white">${escapeHtml(active.title)}</h3>
+              <span class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-100">
+                <i data-lucide="shield-alert" class="h-3.5 w-3.5"></i>
+                ${escapeHtml(active.risk)}
+              </span>
+            </div>
+            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">${escapeHtml(active.objective)}</p>
+            <div class="mt-4 grid gap-3">
+              ${active.steps.map((step, index) => `
+                <div class="rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                  <div class="mb-2 flex items-center justify-between gap-2">
+                    <p class="text-sm font-bold text-slate-900 dark:text-white">${index + 1}. ${escapeHtml(step.label)}</p>
+                    <button type="button" class="copy-btn inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300" data-copy="${escapeHtml(step.ps)}">
+                      <i data-lucide="copy" class="h-4 w-4"></i>
+                      PS
+                    </button>
+                  </div>
+                  <div class="grid gap-2 lg:grid-cols-2">
+                    <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-slate-100"><code><span class="text-sky-300">CMD</span> ${highlight(step.cmd)}</code></pre>
+                    <pre class="code-scroll overflow-x-auto whitespace-pre rounded bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-slate-100"><code><span class="text-emerald-300">PS</span> ${highlight(step.ps)}</code></pre>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <p class="inline-flex items-center gap-2 text-sm font-bold text-slate-950 dark:text-white">
+                <i data-lucide="file-code-2" class="h-4 w-4 text-emerald-500"></i>
+                Script PowerShell
+              </p>
+              <button type="button" class="copy-btn inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-bold text-slate-600 transition hover:border-sky-400 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300" data-copy="${escapeHtml(active.script)}">
+                <i data-lucide="copy" class="h-4 w-4"></i>
+                Copier
+              </button>
+            </div>
+            <pre class="code-scroll max-h-96 overflow-auto whitespace-pre rounded bg-slate-950 px-3 py-3 font-mono text-xs leading-5 text-slate-100"><code>${highlight(active.script)}</code></pre>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll(".scenario-tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.activeScenario = button.dataset.id;
+          render();
+        });
+      });
+    }
+
     function renderCards(items) {
       els.grid.innerHTML = items.map((item) => card(item)).join("");
     }
@@ -794,6 +982,7 @@
     function render() {
       renderFilters();
       renderAssistantPrompts();
+      renderFieldMode();
       const items = filteredCommands();
       if (state.activeIndex >= items.length) state.activeIndex = items.length ? items.length - 1 : -1;
       renderFavorites();
@@ -907,6 +1096,19 @@
       URL.revokeObjectURL(url);
     });
 
+    els.installApp.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      els.installApp.classList.add("hidden");
+      els.installApp.classList.remove("inline-flex");
+    });
+
+    els.copyScenario.addEventListener("click", () => {
+      copyToClipboard(activePlaybook().script, els.copyScenario);
+    });
+
     els.assistantToggle.addEventListener("click", () => {
       els.assistantPanel.classList.toggle("hidden");
       if (!els.assistantPanel.classList.contains("hidden") && !els.assistantMessages.children.length) {
@@ -927,6 +1129,19 @@
     });
 
     applyTheme();
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      els.installApp.classList.remove("hidden");
+      els.installApp.classList.add("inline-flex");
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js").catch((error) => console.warn("Service worker non enregistre", error));
+      });
+    }
+
     loadCommands().then(render);
   </script>
 </body>

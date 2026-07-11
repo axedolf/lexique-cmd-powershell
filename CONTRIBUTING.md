@@ -76,3 +76,18 @@ http://localhost:8000
 - La note signale les differences importantes.
 - Le mode sombre et mobile restent lisibles.
 - Le QR code s'affiche si la fiche est ouverte.
+
+## Scenarios terrain
+
+Les scenarios sont definis dans `index.html`, dans le tableau `fieldPlaybooks`.
+
+Chaque scenario doit contenir :
+
+- un objectif clair ;
+- un niveau de risque ou pre-requis ;
+- 3 a 6 etapes maximum ;
+- une version CMD quand elle existe ;
+- une version PowerShell prete a copier ;
+- un script PowerShell complet pour l'intervention rapide.
+
+Garder ces playbooks courts et operationnels : ils doivent aider pendant une vraie intervention, pas remplacer une documentation exhaustive.
